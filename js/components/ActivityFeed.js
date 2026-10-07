@@ -26,23 +26,23 @@ const TYPE_ICON = {
  * @param {Array} entries log entries, newest first
  * @param {{limit?: number, scroll?: boolean, emptyText?: string}} options
  */
-export function ActivityFeed(entries, { limit = 8, scroll = false, emptyText = 'House events will appear here in real time.' } = {}) {
+export function ActivityFeed(entries, { limit = 8, scroll = false, live = false, emptyText = 'House events will appear here in real time.' } = {}) {
   const list = limit ? entries.slice(0, limit) : entries;
   if (!list.length) {
     return EmptyState({ icon: 'activity', title: 'No activity yet', text: emptyText, compact: true });
   }
   return `
-    <ul class="feed ${scroll ? 'scroll-area' : ''}">
+    <ul class="feed ${scroll ? 'scroll-area' : ''}" ${live ? 'data-feed-live="true"' : ''}>
       ${list
         .map(
           (entry) => `
-        <li class="feed__item" data-type="${esc(entry.type)}">
+        <li class="feed__item" data-type="${esc(entry.type)}" data-entry-id="${esc(entry.id)}" style="--i:0">
           <span class="feed__icon">${icon(feedIcon(entry), 13)}</span>
           <div class="feed__body">
             <div class="feed__text">${esc(entry.message)}</div>
           </div>
-          <time class="feed__time" title="${esc(fullDateTime(entry.createdAt))}"
-            datetime="${new Date(entry.createdAt).toISOString()}">${esc(clockTime(entry.createdAt))}</time>
+          <time class="feed__time js-ago" data-ts="${entry.createdAt}" title="${esc(fullDateTime(entry.createdAt))}"
+            datetime="${new Date(entry.createdAt).toISOString()}">${esc(timeAgo(entry.createdAt))}</time>
         </li>`,
         )
         .join('')}

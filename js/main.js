@@ -8,7 +8,7 @@
  *  • wire keyboard shortcuts and filter inputs,
  *  • boot the 3D background when the platform and user preferences allow it.
  */
-import { $, $$, debounce, esc, clockWithSeconds, formatClock } from './utils/dom.js';
+import { $, $$, debounce, esc, clockWithSeconds, formatClock, timeAgo } from './utils/dom.js';
 import { store, selectors } from './store/index.js';
 import { Header, updateHeaderClock } from './components/Header.js';
 import { Sidebar, NAV } from './components/Sidebar.js';
@@ -16,9 +16,16 @@ import { installActions, initActions } from './actions.js';
 import { initModal, closeModal, isModalOpen } from './ui/modal.js';
 import { initBanner, hideBanner, isBannerOpen, showBanner } from './ui/banner.js';
 import { initMenus, onRender as onRenderMenus } from './ui/menu.js';
-import { toastInfo } from './ui/toast.js';
+import { toast, toastInfo } from './ui/toast.js';
 import { runCounters, capturePositions, playFlip, ghostRemoval, glitchFlash } from './motion.js';
 
+import { createNotifier, unreadCount, notifyPrefs, groupOf, mirrorToOS } from './notifications.js';
+import { applyPermissions, accessBar, setLockedCount } from './ui/permissions.js';
+import { renderNotifyPanel, closeNotifyPanel, isNotifyPanelOpen, openNotifyPanel } from './ui/notifyPanel.js';
+import { createFeedSimulator } from './feed-simulator.js';
+import { markSeen } from './views/ActivityView.js';
+
+import { AnalyticsView, AnalyticsMeta } from './views/AnalyticsView.js';
 import { DashboardView, DashboardMeta } from './views/DashboardView.js';
 import { ContestantsView, ContestantsMeta } from './views/ContestantsView.js';
 import { TasksView, TasksMeta } from './views/TasksView.js';
@@ -39,6 +46,7 @@ const VIEWS = {
   tasks: { render: (state) => TasksView(state, { taskStatus: filters.taskStatus }), meta: TasksMeta },
   nominations: { render: (state) => NominationsView(state), meta: NominationsMeta },
   leaderboard: { render: (state) => LeaderboardView(state, { team: filters.boardTeam }), meta: LeaderboardMeta },
+  analytics: { render: (state) => AnalyticsView(state), meta: AnalyticsMeta },
   announcements: { render: (state) => AnnouncementsView(state), meta: AnnouncementsMeta },
   evictions: { render: (state) => EvictionsView(state), meta: EvictionsMeta },
   activity: { render: (state) => ActivityView(state, { logType: filters.logType }), meta: ActivityMeta },
@@ -91,16 +99,29 @@ function render({ animateLists = false } = {}) {
     title: entry.meta.title,
     subtitle: entry.meta.subtitle,
     sidebar: current.ui.sidebar,
+    state: current,
   });
 
   $('#viewHost').innerHTML = `<section class="view is-active" id="view-${view}" data-view="${view}">${entry.render(
     current,
   )}</section>`;
 
+  // Role-based access: lock every control the signed-in role may not use.
+  // Runs after the mounts above so nothing is ever rendered unlocked.
+  const locked = applyPermissions(current, $('#viewHost')) + applyPermissions(current, $('#header'));
+  setLockedCount(locked);
+  if (accessHost) accessHost.innerHTML = accessBar(current, { locked });
+
   document.body.dataset.view = view;
   const app = $('#app');
   if (app) app.dataset.sidebar = current.ui.sidebar;
-  document.title = `${entry.meta.title} · Big Boss Command Center`;
+
+  const unread = unreadCount(current);
+  document.title = `${unread ? `(${unread}) ` : ''}${entry.meta.title} · Big Boss Command Center`;
+
+  renderNotifyPanel(current);
+  markFreshEntries(current);
+  syncRelativeTimes();
 
   runCounters();
   if (before) playFlip(before);
@@ -140,6 +161,99 @@ function syncTimerWidgets() {
   $$('.js-clock-label').forEach((node) => (node.textContent = label));
 }
 
+/* ── Live log helpers ──────────────────────────────────────────────────── */
+
+/** Patch every relative timestamp on screen without a re-render. */
+function syncRelativeTimes() {
+  $$('.js-ago').forEach((node) => {
+    const ts = Number(node.dataset.ts);
+    if (!ts) return;
+    const text = timeAgo(ts);
+    if (node.textContent !== text) node.textContent = text;
+  });
+}
+
+let newestEntryId = null;
+
+/** Pulse the entries that arrived since the last paint (live-tail feel). */
+function markFreshEntries(current) {
+  const top = current.log[0];
+  const list = $$('[data-entry-id]');
+  if (!top || !list.length) {
+    newestEntryId = top?.id || null;
+    return;
+  }
+  if (newestEntryId === null) {
+    newestEntryId = top.id;
+    return;
+  }
+  if (newestEntryId === top.id) return;
+
+  const fresh = new Set();
+  for (const entry of current.log) {
+    if (entry.id === newestEntryId) break;
+    fresh.add(entry.id);
+  }
+  fresh.forEach((id) => {
+    const node = list.find((item) => item.dataset.entryId === id);
+    if (!node) return;
+    node.classList.add('is-new');
+    setTimeout(() => node.classList.remove('is-new'), 2400);
+  });
+  newestEntryId = top.id;
+
+  // Live tail: keep the newest event in view while following.
+  const wasFollowing = document.body.dataset.view === 'activity' && state().ui.feedFollow !== false;
+  if (wasFollowing && !state().ui.feedPaused) {
+    const scroller = $('#feedScroll');
+    if (scroller) scroller.scrollTop = 0;
+  }
+  markSeenForFeed(current);
+}
+
+function markSeenForFeed(current) {
+  const paused = Boolean(current.ui.feedPaused);
+  if (!paused) markSeen(current.log);
+}
+
+/* ── Event notifications ───────────────────────────────────────────────── */
+
+const notifier = createNotifier();
+let notifierPrimed = false;
+
+/**
+ * Deliver freshly created notifications: bell badge (via render), toasts for
+ * the loud ones, and OS notifications when the operator opted in.
+ */
+function deliverNotifications(items) {
+  if (!items.length) return;
+  const prefs = notifyPrefs(state());
+  if (!prefs.dnd) {
+    items
+      .filter((item) => item.priority === 'high')
+      .slice(0, 2)
+      .forEach((item) =>
+        toast(item.body, { title: item.title, tone: item.group === 'evictions' || item.group === 'access' ? 'error' : 'info', icon: item.icon }),
+      );
+  }
+  items.forEach((item) => {
+    if (prefs.browser) mirrorToOS(item, { onClick: (alert) => navigate(alert.view || 'dashboard') });
+  });
+}
+
+function observeHouse({ timerState } = {}) {
+  const current = state();
+  if (!notifierPrimed) {
+    notifier.prime(current);
+    notifierPrimed = true;
+    return;
+  }
+  const items = notifier.observe(current, { timerState });
+  if (!items.length) return;
+  store.dispatch({ type: 'notify/add', payload: { items } });
+  deliverNotifications(items);
+}
+
 /* ── Navigation ────────────────────────────────────────────────────────── */
 
 function navigate(view) {
@@ -148,6 +262,10 @@ function navigate(view) {
   if (location.hash.slice(1) !== view) history.replaceState(null, '', `#${view}`);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+/* ── Access bar host ───────────────────────────────────────────────────── */
+
+const accessHost = document.getElementById('accessBar');
 
 /* ── Filter inputs ─────────────────────────────────────────────────────── */
 
@@ -184,6 +302,31 @@ function initFilters() {
 
     if (target.id === 'sidebarToggle') {
       store.dispatch({ type: 'ui/patch', payload: { sidebar: target.checked ? 'collapsed' : 'expanded' } });
+      return;
+    }
+
+    if (target.id === 'feedSimToggle') {
+      store.dispatch({ type: 'ui/patch', payload: { simulateFeed: target.checked } });
+      toastInfo(target.checked ? 'Demo feed simulator running — a House event every ~10 s.' : 'Demo feed simulator stopped.', 'Live log');
+      return;
+    }
+
+    if (target.id === 'dndToggle') {
+      store.dispatch({ type: 'notify/prefs', payload: { dnd: target.checked } });
+      toastInfo(target.checked ? 'Do not disturb — toasts and OS alerts muted.' : 'Alerts audible again.', 'Notifications');
+      return;
+    }
+
+    if (target.dataset.notifyGroup) {
+      const groups = { [target.dataset.notifyGroup]: target.checked };
+      store.dispatch({ type: 'notify/prefs', payload: { groups } });
+      toastInfo(`${groupOf(target.dataset.notifyGroup).label} alerts ${target.checked ? 'on' : 'off'}.`, 'Notifications');
+      return;
+    }
+
+    if (target.id === 'browserNotifyToggle') {
+      requestBrowserAlerts(target.checked);
+      return;
     }
   });
 
@@ -221,11 +364,71 @@ function initFilters() {
   });
 }
 
+/* ── Browser (OS) notifications ────────────────────────────────────────── */
+
+/**
+ * Opt-in flow for the Notification API. Enabling asks for permission; the
+ * preference only sticks when permission is actually granted.
+ */
+async function requestBrowserAlerts(enabled) {
+  if (!enabled) {
+    store.dispatch({ type: 'notify/prefs', payload: { browser: false } });
+    toastInfo('Browser alerts disabled.', 'Notifications');
+    return;
+  }
+  if (typeof Notification === 'undefined') {
+    toastInfo('This browser does not expose the Notification API.', 'Notifications');
+    refresh();
+    return;
+  }
+  let permission = Notification.permission;
+  if (permission === 'default') {
+    try {
+      permission = await Notification.requestPermission();
+    } catch (error) {
+      console.warn('[Big Boss] Notification permission request failed.', error);
+    }
+  }
+  const granted = permission === 'granted';
+  store.dispatch({ type: 'notify/prefs', payload: { browser: granted } });
+  toastInfo(
+    granted
+      ? 'Browser alerts armed — they appear only while this tab is in the background.'
+      : 'Permission not granted, so browser alerts stay off.',
+    'Notifications',
+  );
+  refresh();
+}
+
+/* ── Demo feed simulator ───────────────────────────────────────────────── */
+
+const simulator = createFeedSimulator({ dispatch: store.dispatch, getState: state });
+let simulatorTicking = false;
+
+function syncSimulator() {
+  const wanted = Boolean(state().ui.simulateFeed);
+  if (wanted && !simulator.running) {
+    simulator.start(10 * 1000);
+    // Kick the first event straight away so the demo feels immediate.
+    setTimeout(() => {
+      try {
+        simulator.emit();
+      } catch (error) {
+        console.warn('[Big Boss] simulator event rejected:', error.message);
+      }
+    }, 1200);
+  } else if (!wanted && simulator.running) {
+    simulator.stop();
+  }
+  simulatorTicking = wanted;
+}
+
 /* ── Keyboard shortcuts ────────────────────────────────────────────────── */
 
 function initShortcuts() {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
+      if (isNotifyPanelOpen()) return closeNotifyPanel();
       if (isBannerOpen()) return hideBanner();
       if (isModalOpen()) return closeModal();
       return;
@@ -234,8 +437,14 @@ function initShortcuts() {
     const typing = /input|textarea|select/i.test(event.target.tagName) || event.target.isContentEditable;
     if (typing || event.metaKey || event.ctrlKey || event.altKey) return;
 
+    // 1…9 jump to sections; 0 opens the tenth (Analytics).
+    if (NAV.length >= 10 && event.key === '0') {
+      event.preventDefault();
+      navigate(NAV[9].id);
+      return;
+    }
     const digit = Number(event.key);
-    if (digit >= 1 && digit <= NAV.length) {
+    if (digit >= 1 && digit <= Math.min(9, NAV.length)) {
       event.preventDefault();
       navigate(NAV[digit - 1].id);
       return;
@@ -252,6 +461,11 @@ function initShortcuts() {
       case 'n':
         event.preventDefault();
         document.querySelector('[data-action="announcement:open"]')?.click();
+        break;
+      case 'i':
+        event.preventDefault();
+        if (isNotifyPanelOpen()) closeNotifyPanel();
+        else openNotifyPanel(state());
         break;
       case 't': {
         event.preventDefault();
@@ -270,6 +484,8 @@ function initShortcuts() {
 }
 
 /* ── Timer tick loop ───────────────────────────────────────────────────── */
+
+let second = -1;
 
 function initTimerLoop() {
   let previous = selectors.timerView(state()).remaining;
@@ -295,6 +511,10 @@ function initTimerLoop() {
     }
 
     updateHeaderClock(clockWithSeconds());
+    if (second !== new Date().getSeconds()) {
+      second = new Date().getSeconds();
+      syncRelativeTimes();
+    }
   }, 250);
 }
 
@@ -351,6 +571,8 @@ function dismissSplash() {
 
 function boot() {
   const initial = state();
+  // Exposed for the shell + the test harness (deterministic simulator ticks).
+  window.__commandCenter = { navigate, refresh: render, simulator, observeHouse, syncSimulator };
 
   // Restore the view from the URL hash when present.
   const hash = location.hash.slice(1);
@@ -378,10 +600,14 @@ function boot() {
   // Leaderboard-style views animate reordering; others simply repaint.
   store.subscribe((_, action) => {
     if (action?.meta?.silent) return;
+    if (action?.type !== 'notify/add') observeHouse({ timerState: selectors.timerView(state()).state });
+    syncSimulator();
     render({ animateLists: state().ui.activeView === 'leaderboard' });
   });
 
+  observeHouse({ timerState: selectors.timerView(initial).state });
   render();
+  syncSimulator();
   applyBackgroundPreference();
   // Let the crest land before the room fades in.
   requestAnimationFrame(() => setTimeout(dismissSplash, 420));

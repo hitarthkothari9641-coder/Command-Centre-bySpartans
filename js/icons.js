@@ -11,7 +11,6 @@ export const ICONS = {
   trophy: '<path d="M8 3h8v5a4 4 0 0 1-8 0V3z"/><path d="M8 5H5.5A2.5 2.5 0 0 0 8 9.5"/><path d="M16 5h2.5A2.5 2.5 0 0 1 16 9.5"/><path d="M12 12v4M9 20h6M10 20l.5-4h3l.5 4"/>',
   megaphone: '<path d="M3 11v2a1 1 0 0 0 1 1h2.5l4.5 4.5V5.5L6.5 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
   door: '<path d="M13 4H7a2 2 0 0 0-2 2v14h8"/><path d="M13 4l6 2v14l-6 2z"/><circle cx="15.5" cy="12" r="1"/>',
-  activity: '<path d="M22 12h-4l-3 8-4-16-3 8H2"/>',
   settings: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M4.2 7.5l2.2 1.3M17.6 15.2l2.2 1.3M4.2 16.5l2.2-1.3M17.6 8.8l2.2-1.3"/>',
 
   /* actions */
@@ -67,4 +66,17 @@ export const ICONS = {
   power: '<path d="M12 3v9"/><path d="M6.5 7a8 8 0 1 0 11 0"/>',
   scan: '<path d="M4 8V6a2 2 0 0 1 2-2h2M20 8V6a2 2 0 0 0-2-2h-2M4 16v2a2 2 0 0 0 2 2h2M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M4 12h16"/>',
   grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
+
+  /* monitoring, access & analytics */
+  bell: '<path d="M18 8.5a6 6 0 1 0-12 0c0 5-1.5 6.5-1.5 6.5h15S18 13.5 18 8.5z"/><path d="M10.3 18.5a2 2 0 0 0 3.4 0"/>',
+  'bell-off': '<path d="M13.7 3.4A6 6 0 0 0 6 8.5c0 1.5-.3 2.6-.6 3.4M17.9 12.4c.1-1.3.1-2.6.1-3.9a5.9 5.9 0 0 0-.5-2.3"/><path d="M4.5 15h12.2M4 4l16 16"/><path d="M10.3 18.5a2 2 0 0 0 3.4 0"/>',
+  'trending-up': '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  'trending-down': '<path d="M3 7l6 6 4-4 8 8"/><path d="M15 17h6v-6"/>',
+  'bar-chart': '<path d="M5 20V11M12 20V4M19 20v-6"/><path d="M3 20h18"/>',
+  'pie-chart': '<path d="M12 3v9h9"/><path d="M21 12a9 9 0 1 1-9-9"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l8.5-8.5M17 6l2 2M14.5 8.5l2 2"/>',
+  'user-check': '<path d="M15 20v-1.8a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20"/><circle cx="8.5" cy="7" r="3.5"/><path d="M16.5 11l2 2 4-4.5"/>',
+  flask: '<path d="M9 3h6M10 3v5.4L5.5 17a3 3 0 0 0 2.7 4.4h7.6a3 3 0 0 0 2.7-4.4L14 8.4V3"/><path d="M7.4 14h9.2"/>',
+  radio: '<circle cx="12" cy="12" r="2.5"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2M19.1 4.9a10 10 0 0 1 0 14.2"/>',
+  activity: '<path d="M22 12h-4l-3 8-4-16-3 8H2"/>',
 };

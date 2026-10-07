@@ -141,10 +141,11 @@ export function DashboardView(state) {
             'House Activity',
             'activity',
             'Live event log',
-            `<button class="btn btn--sm btn--ghost" data-action="nav:go" data-view="activity">Open log</button>`,
+            `<span class="chip chip--live"><i class="live-dot"></i> Live</span>
+             <button class="btn btn--sm btn--ghost" data-action="nav:go" data-view="activity">Open log</button>`,
           )}
           <div class="card__body card__body--flush">
-            ${ActivityFeed(state.log, { limit: 7 })}
+            ${ActivityFeed(state.log, { limit: 7, live: state.ui.feedFollow !== false && !state.ui.feedPaused })}
           </div>
           ${ActivityFooter(state.log.length)}
         </section>

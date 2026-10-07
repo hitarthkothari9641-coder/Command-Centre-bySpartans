@@ -203,11 +203,13 @@ export const DangerWarning = (text, tone = 'warning') => `
 export const ShortcutsBody = () => `
   <div class="stack-8">
     ${[
-      ['1 – 9', 'Jump between the nine sections'],
+      ['1 – 9', 'Jump between the first nine sections'],
+      ['0', 'Performance analytics'],
       ['B', 'Collapse or expand the sidebar'],
       ['N', 'Compose a Big Boss announcement'],
+      ['I', 'Open the notification centre'],
       ['T', 'Start or pause the task timer'],
-      ['Esc', 'Close overlays and menus'],
+      ['Esc', 'Close overlays, menus and the notification panel'],
       ['Enter', 'Confirm the focused modal'],
     ]
       .map(

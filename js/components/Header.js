@@ -1,5 +1,7 @@
 import { esc } from '../utils/dom.js';
 import { icon } from '../utils/icons.js';
+import { BellButton } from './NotificationCentre.js';
+import { roleChip } from '../ui/permissions.js';
 
 /**
  * Top bar — brand, live clock, House status indicator and the primary
@@ -7,7 +9,7 @@ import { icon } from '../utils/icons.js';
  * @param {{houseName: string, season: number, day: number, activeCount: number,
  *          nominees: number, title: string, subtitle: string, sidebar: string}} options
  */
-export function Header({ houseName, season, day, activeCount, nominees, title, subtitle, sidebar }) {
+export function Header({ houseName, season, day, activeCount, nominees, title, subtitle, sidebar, state = null }) {
   const collapsed = sidebar === 'collapsed';
   return `
     <header class="topbar">
@@ -41,6 +43,9 @@ export function Header({ houseName, season, day, activeCount, nominees, title, s
         <span class="chip chip--clock" id="houseClock" title="Control room time">
           ${icon('clock', 13)}<span id="headerClock">--:--:--</span>
         </span>
+
+        ${state ? BellButton(state) : ''}
+        ${state ? roleChip(state, { compact: true }) : ''}
 
         <button class="btn btn--primary btn--announce" data-action="announcement:open">
           ${icon('megaphone', 15)}<span class="btn__label">Make Announcement</span>

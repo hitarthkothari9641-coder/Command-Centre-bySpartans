@@ -5,6 +5,7 @@
 import { reducer } from './reducer.js';
 import { createSeed } from './seed.js';
 import * as selectors from './selectors.js';
+import { checkAccess, roleId, AccessError, ROLES, DEFAULT_ROLE } from './roles.js';
 
 const STORAGE_KEY = 'bb-command-centre.v1';
 const PERSIST_THROTTLE_MS = 1500;
@@ -20,15 +21,19 @@ function loadState() {
     if (!parsed || !Array.isArray(parsed.contestants) || !parsed.contestants.length) return seed;
 
     // Forward/backward compatible defaults for anything missing.
+    const role = ROLES[parsed.session?.role] ? parsed.session.role : DEFAULT_ROLE;
     return {
       ...seed,
       ...parsed,
-      version: 2,
+      version: 3,
       house: { ...seed.house, ...(parsed.house || {}) },
       timer: { ...seed.timer, ...(parsed.timer || {}) },
       tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
       announcements: Array.isArray(parsed.announcements) ? parsed.announcements : [],
       log: Array.isArray(parsed.log) ? parsed.log : [],
+      session: { role },
+      notifications: Array.isArray(parsed.notifications) ? parsed.notifications : [],
+      notify: { ...seed.notify, ...(parsed.notify || {}), groups: { ...seed.notify.groups, ...(parsed.notify?.groups || {}) } },
       ui: { ...seed.ui, ...(parsed.ui || {}) },
     };
   } catch (error) {
@@ -49,6 +54,20 @@ function createStore(initialState) {
    * @throws {Error} when the action violates a House rule (reducer validates)
    */
   function dispatch(action) {
+    // ── Role-based access control ────────────────────────────────────────
+    // Every mutation funnels through here, so the policy is enforced once.
+    const denial = checkAccess(state, action);
+    if (denial) {
+      const role = roleId(state);
+      const next = reducer(state, { type: 'access/denied', payload: { role, attemptType: action.type } });
+      if (next !== state) {
+        state = next;
+        persist();
+        listeners.forEach((listener) => listener(state, action));
+      }
+      throw new AccessError(denial, { action, role });
+    }
+
     const next = reducer(state, action);
     if (next === state) return state; // no-op action, skip notification
     state = next;
@@ -104,3 +123,4 @@ export const {
 } = selectors;
 
 export { TEAMS } from './seed.js';
+export { ROLES, ROLE_ORDER, roleId, roleOf, checkAccess, can, AccessError, matrixFor } from './roles.js';

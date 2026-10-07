@@ -8,9 +8,11 @@
  *  • every state-changing action appends an audit-log entry.
  */
 import { TEAMS } from './seed.js';
+import { ROLES, roleId, describeAction } from './roles.js';
 
 const MAX_LOG = 250;
 const MAX_ANNOUNCEMENTS = 100;
+const MAX_NOTIFICATIONS = 80;
 
 let idCounter = 0;
 const uid = (prefix) => `${prefix}_${Date.now().toString(36)}${(idCounter++).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
@@ -524,15 +526,97 @@ export function reducer(state, action) {
       return {
         ...payload.state,
         ui: { ...(payload.state.ui || state.ui), ...state.ui },
+        session: state.session,
+        notify: state.notify,
         log: payload.state.log?.length ? payload.state.log : state.log,
       };
 
     case 'house/reset':
-      // A fresh House inherits the current UI session (view, sidebar, intro).
-      return { ...payload.state, ui: { ...payload.state.ui, ...state.ui } };
+      // A fresh House inherits the current UI session (view, sidebar, intro)
+      // and the operator's role + notification preferences.
+      return { ...payload.state, ui: { ...payload.state.ui, ...state.ui }, session: state.session, notify: state.notify };
 
     case 'log/clear':
       return { ...state, log: [{ id: uid('l'), type: 'session', message: 'Activity log cleared by Big Boss.', createdAt: Date.now() }] };
+
+    /* ── Access control (roles) ──────────────────────────────────────── */
+    case 'role/set': {
+      const role = ROLES[payload.role] ? payload.role : null;
+      if (!role) throw new Error('That role does not exist in the Command Center.');
+      if (role === roleId(state)) return state;
+      const actor = ROLES[roleId(state)].label;
+      const next = { ...state, session: { ...(state.session || {}), role } };
+      return appendLog(next, 'access', `Access switched from ${actor} to ${ROLES[role].label} — ${ROLES[role].tagline.toLowerCase()}.`, {
+        kind: 'role',
+        role,
+        previousRole: roleId(state),
+      });
+    }
+
+    case 'access/denied': {
+      const role = ROLES[payload.role] ? payload.role : roleId(state);
+      const attempt = payload.attemptType;
+      // Collapse rapid repeats: holding a locked control should not flood the log.
+      const duplicate = state.log.find(
+        (entry) =>
+          entry.type === 'access' &&
+          entry.kind === 'denied' &&
+          entry.attemptType === attempt &&
+          Date.now() - entry.createdAt < 5000,
+      );
+      if (duplicate) return state;
+      return appendLog(state, 'access', `Blocked: ${ROLES[role].label} access cannot ${describeAction(attempt)}.`, {
+        kind: 'denied',
+        role,
+        attemptType: attempt,
+      });
+    }
+
+    /* ── Event notifications ─────────────────────────────────────────── */
+    case 'notify/add': {
+      const items = [].concat(payload.items || payload.item || []).filter(Boolean);
+      if (!items.length) return state;
+      const known = new Set(state.notifications.map((item) => item.sourceId).filter(Boolean));
+      const fresh = items.filter((item) => !item.sourceId || !known.has(item.sourceId));
+      if (!fresh.length) return state;
+      return { ...state, notifications: [...fresh, ...state.notifications].slice(0, MAX_NOTIFICATIONS) };
+    }
+
+    case 'notify/read': {
+      const ids = new Set([].concat(payload.ids || payload.id || []).filter(Boolean));
+      if (!ids.size) return state;
+      let changed = false;
+      const notifications = state.notifications.map((item) => {
+        if (!ids.has(item.id) || item.read) return item;
+        changed = true;
+        return { ...item, read: true };
+      });
+      return changed ? { ...state, notifications } : state;
+    }
+
+    case 'notify/readAll': {
+      if (!state.notifications.some((item) => !item.read)) return state;
+      return { ...state, notifications: state.notifications.map((item) => (item.read ? item : { ...item, read: true })) };
+    }
+
+    case 'notify/clear': {
+      const next = payload.all ? [] : state.notifications.filter((item) => !item.read);
+      if (next.length === state.notifications.length) return state;
+      return { ...state, notifications: next };
+    }
+
+    case 'notify/prefs': {
+      const groups = { ...(state.notify?.groups || {}) };
+      Object.entries(payload.groups || {}).forEach(([key, value]) => {
+        groups[key] = Boolean(value);
+      });
+      const notify = {
+        browser: payload.browser === undefined ? state.notify?.browser ?? false : Boolean(payload.browser),
+        dnd: payload.dnd === undefined ? state.notify?.dnd ?? false : Boolean(payload.dnd),
+        groups,
+      };
+      return { ...state, notify };
+    }
 
     /* ── UI preferences (not part of the House record) ───────────────── */
     case 'ui/patch':

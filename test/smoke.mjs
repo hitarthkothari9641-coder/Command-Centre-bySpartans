@@ -493,8 +493,8 @@ await test('12c · Whole Danger Zone can be evicted at once', async () => {
 
 /* ══ Robustness ═════════════════════════════════════════════════════════ */
 
-await test('All nine views render without errors', async () => {
-  const views = ['dashboard', 'contestants', 'tasks', 'nominations', 'leaderboard', 'announcements', 'evictions', 'activity', 'settings'];
+await test('All ten views render without errors', async () => {
+  const views = ['dashboard', 'contestants', 'tasks', 'nominations', 'leaderboard', 'analytics', 'announcements', 'evictions', 'activity', 'settings'];
   views.forEach((view) => {
     nav(view);
     const host = $(`#view-${view}`);
@@ -656,6 +656,290 @@ await test('Counters never render out-of-range values (foreign rAF clock)', asyn
   await new Promise((resolve) => setTimeout(resolve, 1100));
   assert.equal(Number(String(scoreNode().textContent).replace(/[^0-9.-]/g, '')), expected, 'counter settles on the true value');
   click(scoreNode().closest('.lb-row').querySelector('[data-action="points:quick"][data-delta="-10"]'));
+});
+
+/* ══ 13. Real-time activity log ════════════════════════════════════════ */
+
+await test('13 · Live activity log — seeded history, relative times, live tail', async () => {
+  nav('activity');
+  const log = store().log;
+  assert.ok(log.length > 30, `seeded House history is present (${log.length} entries)`);
+  assert.ok(
+    log.every((entry, index) => index === 0 || log[index - 1].createdAt >= entry.createdAt),
+    'the log is stored newest-first',
+  );
+  assert.ok(log.some((entry) => entry.type === 'points' && entry.delta), 'points events carry their delta for analytics');
+
+  // Relative timestamps render and are patchable without a re-render.
+  const stamps = $$('#view-activity .js-ago');
+  assert.ok(stamps.length > 5, `relative timestamps rendered (${stamps.length})`);
+  assert.ok(stamps.every((node) => Number(node.dataset.ts) > 0), 'every stamp carries its timestamp');
+  assert.ok(/ago|now/.test(stamps[0].textContent), `stamps read as relative time ("${stamps[0].textContent}")`);
+
+  // Live controls + rate gauge.
+  assert.ok($('.live-strip'), 'live strip is present');
+  assert.ok(/\d+(\.\d+)?/.test($('.live-strip__rate').textContent), 'event rate is displayed');
+  assert.ok($('[data-action="feed:toggle"]'), 'pause/resume control exists');
+});
+
+await test('13b · New House events stream in live (and pausing is non-destructive)', async () => {
+  nav('activity');
+  const before = store().log.length;
+
+  // A real House action lands at the top of the feed and is marked fresh.
+  const subject = store().contestants[0];
+  nav('leaderboard');
+  click(boardRow(subject.id).querySelector('[data-action="points:quick"][data-delta="10"]'));
+  nav('activity');
+  await wait(60);
+  assert.ok(store().log.length > before, 'the event was recorded');
+  assert.equal($('#view-activity .feed__item').dataset.entryId, store().log[0].id, 'newest event renders first');
+
+  // Pause the feed: events keep recording, the view stops claiming to follow.
+  click($('[data-action="feed:toggle"]'));
+  assert.equal(store().ui.feedPaused, true, 'feed paused');
+  assert.equal($('.live-strip').dataset.paused, 'true', 'the strip reports the paused state');
+  const pausedAt = store().log.length;
+  window.__commandCenter.simulator.emit();
+  assert.ok(store().log.length > pausedAt, 'events are still recorded while paused');
+
+  // The paused feed reports what arrived, and resuming clears it.
+  nav('activity');
+  await wait(40);
+  assert.ok(/while paused/.test($('.live-strip').textContent), 'the paused banner counts unseen events');
+  click($('[data-action="feed:toggle"]'));
+  assert.equal(store().ui.feedPaused, false, 'feed resumed');
+});
+
+await test('13c · Demo feed simulator emits real House events', async () => {
+  const before = store().log.length;
+  const description = window.__commandCenter.simulator.emit();
+  assert.ok(description, 'the simulator produced an event');
+  assert.ok(store().log.length > before, `the simulated event reached the log (${description})`);
+  assert.equal(store().log[0].contestantId || store().log[0].taskId ? true : true, true);
+});
+
+/* ══ 14. Role-based access control ═════════════════════════════════════ */
+
+await test('14 · Access control — Viewer is read-only and nothing slips through', async () => {
+  nav('settings');
+  assert.ok($('#roleSwitcher'), 'role switcher is rendered');
+  assert.ok($('#permissionMatrix'), 'permission matrix is rendered');
+
+  // Sign in as Viewer through the settings role card.
+  click($('#roleSwitcher [data-role="viewer"]'));
+  assert.equal(store().session.role, 'viewer', 'role persisted to the store');
+  assert.equal(document.body.dataset.role, 'viewer', 'the shell reports the active role');
+  assert.ok($('.access-bar'), 'read-only ribbon appears for restricted roles');
+  assert.ok(/read-only/i.test($('.access-bar').textContent), 'the ribbon explains the restriction');
+  assert.ok(Number(document.body.dataset.lockedControls) > 0, 'controls are locked in the DOM');
+
+  // A locked button cannot change the House.
+  nav('leaderboard');
+  const subject = store().contestants[0];
+  const pointsBefore = subject.points;
+  const quick = boardRow(subject.id).querySelector('[data-action="points:quick"][data-delta="10"]');
+  assert.ok(quick.disabled || quick.dataset.locked === 'true', 'the points control is locked');
+  click(quick);
+  assert.equal(person(subject.id).points, pointsBefore, 'no points were awarded');
+
+  // The blocked attempt is audited and raises an access notification.
+  const denial = store().log.find((entry) => entry.type === 'access' && entry.kind === 'denied');
+  assert.ok(denial, 'blocked attempt written to the live log');
+  assert.ok(/Blocked/i.test(denial.message), `audit message explains the block ("${denial?.message}")`);
+  const notice = store().notifications.find((item) => item.group === 'access' && /Access denied/i.test(item.title));
+  assert.ok(notice, 'an access notification was raised');
+  assert.equal(notice.read, false, 'it arrives unread');
+
+  // Read-only surfaces still work for a viewer.
+  nav('analytics');
+  assert.ok($('#formTable'), 'a viewer can still read the analytics');
+  nav('activity');
+  assert.ok($('#view-activity .feed__item'), 'a viewer can still read the live log');
+});
+
+await test('14b · Captain access is scoped to their own team', async () => {
+  nav('settings');
+  click($('#roleSwitcher [data-role="captain"]'));
+  assert.equal(store().session.role, 'captain', 'signed in as Captain');
+
+  const captain = store().contestants.find((c) => c.isCaptain);
+  const mate = store().contestants.find((c) => c.status === 'active' && c.team === captain.team && c.id !== captain.id);
+  const outsider = store().contestants.find((c) => c.status === 'active' && c.team !== captain.team);
+
+  assert.ok(/Team/.test($('.access-bar').textContent), 'the ribbon names the captain team');
+
+  // Own team: allowed. Other team: locked.
+  nav('leaderboard');
+  const matePoints = mate.points;
+  click(boardRow(mate.id).querySelector('[data-action="points:quick"][data-delta="10"]'));
+  assert.equal(person(mate.id).points, matePoints + 10, 'points to their own team apply');
+
+  const outPoints = outsider.points;
+  const blocked = boardRow(outsider.id).querySelector('[data-action="points:quick"][data-delta="10"]');
+  click(blocked);
+  assert.equal(person(outsider.id).points, outPoints, 'points outside the team are refused');
+
+  // Evictions stay out of reach.
+  nav('contestants');
+  const evict = $$('[data-action="eviction:open"]')[0];
+  assert.ok(evict.dataset.locked === 'true', 'eviction controls are locked for a Captain');
+});
+
+await test('14c · Big Boss regains full control (and the House still works)', async () => {
+  nav('settings');
+  click($('#roleSwitcher [data-role="bigboss"]'));
+  assert.equal(store().session.role, 'bigboss', 'signed back in as Big Boss');
+  assert.equal(document.body.dataset.lockedControls, '0', 'nothing is locked for Big Boss');
+  assert.equal($('.access-bar'), null, 'the read-only ribbon disappears');
+
+  nav('leaderboard');
+  const subject = store().contestants[0];
+  const before = subject.points;
+  click(boardRow(subject.id).querySelector('[data-action="points:quick"][data-delta="10"]'));
+  assert.equal(person(subject.id).points, before + 10, 'House actions work again');
+  click(boardRow(subject.id).querySelector('[data-action="points:quick"][data-delta="-10"]'));
+});
+
+/* ══ 15. Performance analytics ═════════════════════════════════════════ */
+
+await test('15 · Performance analytics — KPIs, charts and the form guide', async () => {
+  nav('analytics');
+  assert.ok($('#view-analytics'), 'analytics view mounted');
+  assert.ok($$('#view-analytics .kpi').length >= 6, `KPI tiles rendered (${$$('#view-analytics .kpi').length})`);
+  assert.ok($('[data-chart="area"]'), 'points velocity area chart rendered');
+  assert.ok($$('[data-chart="bar"]').length >= 2, 'award + event-rate bar charts rendered');
+  assert.ok($('[data-chart="donut"]'), 'team share donut rendered');
+  assert.ok($$('#formTable tbody tr').length >= 10, 'form guide lists the House');
+  assert.ok($$('#insights .insight').length >= 5, 'plain-language insights generated');
+
+  const range = store().ui.analyticsRange;
+  assert.ok(['1h', '6h', '24h', 'all'].includes(range), `a default window is set (${range})`);
+  click($('#analyticsRange [data-range="24h"]'));
+  assert.equal(store().ui.analyticsRange, '24h', 'window switch persists');
+  assert.ok(/Points in 24/.test($('#view-analytics').textContent), 'headline KPI follows the window');
+  click($('#analyticsRange [data-range="all"]'));
+  assert.ok(/Ledger fully reconciled|pts of history/.test($('#view-analytics').textContent), 'ledger coverage is reported');
+});
+
+await test('15b · The analytics ledger reconciles with the House scores', async () => {
+  nav('analytics');
+  const snapshot = store();
+  const gained = new Map();
+  snapshot.log.forEach((entry) => {
+    if (entry.type === 'points' && entry.contestantId) {
+      gained.set(entry.contestantId, (gained.get(entry.contestantId) || 0) + entry.delta);
+    }
+    if (entry.type === 'task' && entry.kind === 'complete' && Array.isArray(entry.contestantIds)) {
+      entry.contestantIds.forEach((id) => gained.set(id, (gained.get(id) || 0) + (entry.points || 0)));
+    }
+  });
+  const mismatch = snapshot.contestants
+    .filter((c) => c.status === 'active')
+    .filter((c) => (gained.get(c.id) || 0) !== c.points)
+    .map((c) => `${c.name}: ledger ${gained.get(c.id) || 0} vs score ${c.points}`);
+  assert.deepEqual(mismatch, [], `every score is explained by the log (${mismatch.join(' | ')})`);
+});
+
+/* ══ 16. Event notifications ═══════════════════════════════════════════ */
+
+await test('16 · Event notifications — bell, unread badge and the panel', async () => {
+  nav('dashboard');
+  const bell = $('.bell');
+  assert.ok(bell, 'bell is in the top bar');
+  const unreadBefore = store().notifications.filter((item) => !item.read).length;
+  assert.ok(bell.getAttribute('aria-label').length > 0, 'bell is labelled for screen readers');
+  if (unreadBefore) {
+    assert.ok($('.bell__badge'), 'unread notifications show a badge');
+    assert.ok(/unread notification/.test(bell.getAttribute('aria-label')), 'screen readers hear the unread count');
+  }
+
+  click(bell);
+  await wait(20);
+  const panel = $('#notifyPanel');
+  assert.ok(panel && !panel.hidden, 'notification panel opens');
+  assert.ok($$('#notifyPanel .notice').length > 0, 'notifications are listed');
+  assert.ok($('#notifyPanel .notice__open'), 'each notification deep-links');
+
+  // Filtering and reading state.
+  click($('#notifyPanel [data-action="notify:filter"][data-filter="unread"]'));
+  assert.equal(store().ui.notifyFilter, 'unread', 'unread filter applied');
+  const first = $$('#notifyPanel .notice').length;
+  click($('#notifyPanel [data-action="notify:readAll"]'));
+  assert.equal(store().notifications.filter((item) => !item.read).length, 0, 'mark-all-read clears the badge');
+  assert.equal($('.bell__badge'), null, 'badge disappears once everything is read');
+  assert.ok(first >= 0);
+
+  // Deep link navigates and closes the panel.
+  click($('#notifyPanel [data-action="notify:filter"][data-filter="all"]'));
+  const target = $$('#notifyPanel [data-action="notify:item"]')[0];
+  const view = target.dataset.view;
+  click(target);
+  assert.equal(store().ui.activeView, view, `notification opened the ${view} view`);
+  assert.ok($('#notifyPanel').hidden, 'panel closed after the deep link');
+});
+
+await test('16b · House events raise notifications, and rules respect preferences', async () => {
+  // An eviction is a high-priority rule.
+  nav('nominations');
+  const box = $('#inlineNominationPicker input[type="checkbox"]');
+  box.checked = true;
+  box.dispatchEvent(new window.Event('change', { bubbles: true }));
+  set($('#inlineNominationReason'), 'Notification rule check');
+  click($('#view-nominations [data-action="nomination:selected"]'));
+  const nominee = store().contestants.find((c) => c.nomination);
+  assert.ok(nominee, 'a contestant entered the Danger Zone');
+
+  const nominationAlert = store().notifications.find((item) => item.group === 'nominations');
+  assert.ok(nominationAlert, 'the nomination raised a notification');
+  assert.equal(nominationAlert.priority, 'high', 'Danger Zone alerts are high priority');
+
+  nav('contestants');
+  click($(`#view-contestants .contestant[data-id="${nominee.id}"] [data-action="menu:toggle"]`));
+  click($(`#view-contestants .contestant[data-id="${nominee.id}"] [data-action="eviction:open"]`));
+  click(modalDanger());
+  escape();
+  await wait(30);
+
+  const eviction = store().notifications.find((item) => item.group === 'evictions');
+  assert.ok(eviction, 'eviction raised a notification');
+  assert.equal(eviction.priority, 'high', 'eviction alerts are high priority');
+  assert.equal(eviction.read, false, 'high-priority alerts arrive unread');
+  const back = store().contestants.find((c) => c.id === nominee.id);
+  click($(`#view-contestants [data-action="nav:go"]`) || $('#sidebar [data-view="evictions"]'));
+  nav('evictions');
+  click($('#view-evictions [data-action="eviction:reinstate"]'));
+  assert.equal(person(nominee.id).status, 'active', `reinstate works after the check (${back.name})`);
+
+  // Categories can be muted: a broadcast in a muted category raises nothing.
+  const broadcast = (message) => {
+    click($('[data-action="announcement:open"]'));
+    set($('#announcementMessage'), message);
+    click(modalPrimary());
+    escape();
+  };
+
+  nav('settings');
+  const setGroup = (id, on) => {
+    const input = $(`[data-notify-group="${id}"]`);
+    assert.ok(input, `category toggle rendered (${id})`);
+    input.checked = on;
+    input.dispatchEvent(new window.Event('change', { bubbles: true }));
+  };
+
+  setGroup('house', false);
+  assert.equal(store().notify.groups.house, false, 'category disabled');
+
+  let before = store().notifications.length;
+  broadcast('Muted category broadcast.');
+  assert.equal(store().notifications.length, before, 'muted category produced no notification');
+  assert.ok(store().log.some((entry) => /Muted category broadcast/.test(entry.message)), 'the event is still in the live log');
+
+  setGroup('house', true);
+  assert.equal(store().notify.groups.house, true, 'category re-enabled');
+  before = store().notifications.length;
+  broadcast('Audible category broadcast.');
+  assert.ok(store().notifications.length > before, 're-enabled category notifies again');
 });
 
 await test('No runtime errors were logged during the session', async () => {

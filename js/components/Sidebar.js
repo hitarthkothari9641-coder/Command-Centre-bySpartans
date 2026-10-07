@@ -1,17 +1,18 @@
 import { esc } from '../utils/dom.js';
 import { icon } from '../utils/icons.js';
 
-/** Navigation model — six primary sections, then the House tools. */
+/** Navigation model — the control room, then the House record. */
 export const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', group: 'Control room', shortcut: '1' },
   { id: 'contestants', label: 'Contestants', icon: 'users', group: 'Control room', badge: 'contestants', shortcut: '2' },
   { id: 'tasks', label: 'Tasks', icon: 'clipboard', group: 'Control room', badge: 'tasks', shortcut: '3' },
   { id: 'nominations', label: 'Nominations', icon: 'shield', group: 'Control room', badge: 'nominees', shortcut: '4' },
   { id: 'leaderboard', label: 'Leaderboard', icon: 'trophy', group: 'Control room', shortcut: '5' },
-  { id: 'announcements', label: 'Announcements', icon: 'megaphone', group: 'Control room', shortcut: '6' },
-  { id: 'evictions', label: 'Evictions', icon: 'door', group: 'House record', badge: 'evicted', shortcut: '7' },
-  { id: 'activity', label: 'Activity Log', icon: 'activity', group: 'House record', shortcut: '8' },
-  { id: 'settings', label: 'Settings', icon: 'settings', group: 'House record', shortcut: '9' },
+  { id: 'analytics', label: 'Analytics', icon: 'bar-chart', group: 'Control room', shortcut: '6' },
+  { id: 'announcements', label: 'Announcements', icon: 'megaphone', group: 'Control room', shortcut: '7' },
+  { id: 'evictions', label: 'Evictions', icon: 'door', group: 'House record', badge: 'evicted', shortcut: '8' },
+  { id: 'activity', label: 'Activity Log', icon: 'activity', group: 'House record', shortcut: '9' },
+  { id: 'settings', label: 'Settings', icon: 'settings', group: 'House record', shortcut: '0' },
 ];
 
 const BADGE_TONE = { contestants: '', tasks: 'accent', nominees: 'danger', evicted: '' };

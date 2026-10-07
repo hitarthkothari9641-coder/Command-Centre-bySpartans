@@ -15,6 +15,10 @@ import { showBanner } from './ui/banner.js';
 import { toggleMenu } from './ui/menu.js';
 import { glitchFlash, resetCounters } from './motion.js';
 import { createSeed } from './store/seed.js';
+import { ROLES, ROLE_ORDER, roleId, matrixFor, boundCaptain } from './store/roles.js';
+import { openNotifyPanel, closeNotifyPanel, toggleNotifyPanel } from './ui/notifyPanel.js';
+import { markSeen } from './views/ActivityView.js';
+import { contestantForm, kpis, rangeOf } from './store/analytics.js';
 import * as forms from './components/ModalForms.js';
 
 let navigate = () => {};
@@ -727,9 +731,227 @@ const handlers = {
       },
     }),
 
+  /* ── Role-based access ─────────────────────────────────────────────── */
+  'role:open': () =>
+    openModal({
+      title: 'Access & roles',
+      desc: 'Choose the operator this control room is acting as. Permissions are enforced on every House action.',
+      body: RoleBody(),
+      actions: [{ label: 'Close' }],
+      onOpen: (body) => {
+        $$('[data-role-pick]', body).forEach((button) =>
+          button.addEventListener('click', () => {
+            const role = button.dataset.rolePick;
+            const done = dispatch(
+              { type: 'role/set', payload: { role } },
+              { success: `Signed in as ${ROLES[role].label} — ${ROLES[role].tagline}.` },
+            );
+            if (done) closeModal();
+            refresh();
+          }),
+        );
+      },
+    }),
+
+  'role:set': ({ element }) => {
+    const role = element.dataset.role;
+    if (!ROLES[role]) return;
+    dispatch(
+      { type: 'role/set', payload: { role } },
+      { success: `Signed in as ${ROLES[role].label} — ${ROLES[role].tagline}.` },
+    );
+    refresh();
+  },
+
+  /* ── Event notifications ───────────────────────────────────────────── */
+  'notify:toggle': () => toggleNotifyPanel(state()),
+
+  'notify:open': () => {
+    dispatch({ type: 'notify/readAll' }, {});
+    openNotifyPanel(state());
+    refresh();
+  },
+
+  'notify:close': () => closeNotifyPanel(),
+
+  'notify:filter': ({ element }) => {
+    store.dispatch({ type: 'ui/patch', payload: { notifyFilter: element.dataset.filter || 'all' } });
+  },
+
+  'notify:read': ({ element }) =>
+    store.dispatch({ type: 'notify/read', payload: { id: element.dataset.id } }),
+
+  'notify:readAll': () => {
+    const unread = state().notifications.filter((item) => !item.read).length;
+    store.dispatch({ type: 'notify/readAll' });
+    if (unread) toastInfo(`${unread} notification${unread === 1 ? '' : 's'} marked read.`, 'Inbox clear');
+  },
+
+  'notify:clear': () => {
+    const before = state().notifications.length;
+    const kept = state().notifications.filter((item) => !item.read).length;
+    store.dispatch({ type: 'notify/clear' });
+    const removed = before - kept;
+    toastInfo(removed ? `${removed} read notification${removed === 1 ? '' : 's'} cleared.` : 'Nothing read to clear.', 'Notifications');
+  },
+
+  'notify:item': ({ element }) => {
+    const item = state().notifications.find((entry) => entry.id === element.dataset.id);
+    if (!item) return;
+    store.dispatch({ type: 'notify/read', payload: { id: item.id } });
+    closeNotifyPanel();
+    navigate(item.view || 'dashboard');
+  },
+
+  'notify:settings': () => {
+    closeNotifyPanel();
+    navigate('settings');
+    setTimeout(() => $('#notifyCard')?.scrollIntoView?.({ behavior: 'smooth', block: 'center' }), 120);
+  },
+
+  'notify:test': () => {
+    const item = {
+      id: `n_test_${Date.now().toString(36)}`,
+      sourceId: `test:${Date.now()}`,
+      group: 'house',
+      priority: 'high',
+      icon: 'bell',
+      tone: 'cyan',
+      title: 'Test alert from the control room',
+      body: `Notification rules are armed for ${ROLES[roleId(state())].label} access · ${new Date().toLocaleTimeString()}.`,
+      view: 'settings',
+      createdAt: Date.now(),
+      read: false,
+    };
+    store.dispatch({ type: 'notify/add', payload: { items: [item] } });
+    toastInfo('Test alert sent to the notification centre.', 'Notifications');
+  },
+
+  /* ── Live activity feed ────────────────────────────────────────────── */
+  'feed:toggle': () => {
+    const paused = Boolean(state().ui.feedPaused);
+    store.dispatch({ type: 'ui/patch', payload: { feedPaused: !paused, feedFollow: true } });
+    if (paused) markSeen(state().log);
+    toastInfo(paused ? 'Live tail resumed — following new House events.' : 'Feed paused. Events keep recording in the background.', 'Live log');
+  },
+
+  'feed:simulate': () => {
+    const on = !state().ui.simulateFeed;
+    store.dispatch({ type: 'ui/patch', payload: { simulateFeed: on } });
+    toastInfo(
+      on ? 'Demo feed simulator enabled — a House event every ~10 seconds.' : 'Demo feed simulator stopped.',
+      'Live log',
+    );
+  },
+
+  /* ── Performance analytics ─────────────────────────────────────────── */
+  'analytics:range': ({ element }) => {
+    store.dispatch({ type: 'ui/patch', payload: { analyticsRange: element.dataset.range } });
+  },
+
+  'analytics:export': () => {
+    const current = state();
+    const rangeId = current.ui.analyticsRange || '6h';
+    const summary = kpis(current, rangeId);
+    const rows = contestantForm(current, rangeId);
+    const range = rangeOf(rangeId);
+
+    const csv = [
+      ['Metric', 'Value'],
+      ['Window', range.label],
+      ['House points', summary.totalPoints],
+      ['Points awarded in window', summary.awarded],
+      ['Events in window', summary.events],
+      ['Events per hour', summary.eventsPerHour],
+      ['Momentum %', summary.momentum],
+      ['Completion rate %', summary.completionRate],
+      [],
+      ['Rank', 'Contestant', 'Team', 'Points', 'Earned in window', 'Rank move', 'Tasks completed'],
+      ...rows.map((row) => [row.rank, row.name, row.team, row.points, row.gained, row.movement, row.tasksCompleted]),
+    ]
+      .map((line) => line.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    try {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `tech-house-analytics-${rangeId}-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toastSuccess(`Analytics CSV exported (${rows.length} contestants).`, 'Report ready');
+    } catch (error) {
+      console.warn('[Big Boss] CSV export unavailable in this environment.', error);
+      toastInfo('CSV export is not available in this browser environment.', 'Export');
+    }
+  },
+
   /* Modal buttons are handled by the modal module itself. */
   'modal:action': () => {},
 };
+
+/** Role picker used by the "Access & roles" dialog. */
+function RoleBody() {
+  const current = roleId(state());
+  const captain = boundCaptain(state());
+  return `
+    <div class="stack-12">
+      <div class="role-grid role-grid--modal">
+        ${ROLE_ORDER.map((id) => {
+          const role = ROLES[id];
+          const active = id === current;
+          return `
+            <button class="role-card" type="button" data-role-pick="${id}" data-tone="${role.tone}" data-active="${String(active)}">
+              <span class="role-card__icon">${icon(role.icon, 16)}</span>
+              <span class="role-card__body">
+                <span class="role-card__name">${esc(role.label)}${active ? ' · active' : ''}</span>
+                <span class="role-card__tag">${esc(role.detail)}</span>
+              </span>
+            </button>`;
+        }).join('')}
+      </div>
+
+      ${
+        captain
+          ? `<p class="fs-xs muted">${icon('info', 12)} The Captain role is scoped to the seated House Captain:
+             <strong>${esc(captain.name)}</strong> · Team ${esc(captain.team)}.</p>`
+          : ''
+      }
+
+      <div class="divider"></div>
+      <table class="table table--matrix">
+        <thead>
+          <tr>
+            <th scope="col">Capability</th>
+            ${ROLE_ORDER.map((id) => `<th scope="col">${esc(ROLES[id].label)}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${matrixFor(current)
+            .map(
+              (row) => `
+            <tr>
+              <th scope="row">${esc(row.label)}</th>
+              ${ROLE_ORDER.map(
+                (id) =>
+                  `<td class="table__mark" data-allow="${String(row.allow.includes(id))}">${
+                    row.allow.includes(id) ? icon('check', 13) : icon('x', 12)
+                  }</td>`,
+              ).join('')}
+            </tr>`,
+            )
+            .join('')}
+        </tbody>
+      </table>
+      <p class="fs-xs muted">
+        ${icon('key', 12)} Blocked attempts are recorded in the live activity log and raise an access notification.
+      </p>
+    </div>
+  `;
+}
 
 /* ══ Delegation ════════════════════════════════════════════════════════ */
 
