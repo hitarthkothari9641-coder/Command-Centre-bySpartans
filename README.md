@@ -7,14 +7,18 @@ cinematic announcements, the task timer, house statistics and evictions.
 Brand: **SPARTANS X TECH BOSS** · dark glassmorphism UI · animated 3D background (Three.js) · centralized reducer
 state · zero runtime dependencies beyond a self-hosted vendor bundle.
 
+**🔴 Live app:** **[command-centre-byspartans.onrender.com](https://command-centre-byspartans.onrender.com/)** — deployed on Render as a
+Web Service (free plan: the first request after idling takes ~30 s to wake the instance).
+
 ```
 npm install
 npm start        # → http://localhost:5173
-npm test         # 28 automated feature checks (headless jsdom + esbuild)
+npm test         # 32 automated feature checks (headless jsdom + esbuild)
 ```
 
 **Deploy to Render in one click:** this repo ships a `render.yaml` blueprint (Web Service,
-`/healthz` health check, immutable caching, no database). Full walkthrough, alternatives and
+`/healthz` health check, immutable caching, no database). The reference deployment lives at
+**https://command-centre-byspartans.onrender.com/**. Full walkthrough, alternatives and
 verification commands: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
 
 ---
@@ -119,6 +123,9 @@ Declared in `index.html` (`<link rel="icon">`, `apple-touch-icon`, `mask-icon`, 
 `site.webmanifest` (name, theme colour `#05070d`, standalone display, four app shortcuts).
 
 ## 4. Screenshots
+
+**Live app:** <https://command-centre-byspartans.onrender.com/> — open it to see every view (loading a fresh
+browser profile shows the seeded season, so screenshots are reproducible).
 
 `docs/dashboard-layout.svg` is a **hand-drawn layout schematic** (not a screenshot) of the dashboard bento grid.
 
@@ -238,13 +245,13 @@ after a page refresh (state persists in `localStorage` under the `bb-command-cen
 ## 7. Production notes
 
 - **Deploy** — Render Web Service via `render.yaml` (`npm ci --omit=dev` → `node server.cjs`,
-  health check `/healthz`, `autoDeploy` on `main`). Guide: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
-  Any static host works too, since the runtime has zero dependencies.
+  health check `/healthz`, `autoDeploy` on `main`). Live: **https://command-centre-byspartans.onrender.com/**.
+  Guide: **[docs/DEPLOY.md](docs/DEPLOY.md)**. Any static host works too, since the runtime has zero
+  dependencies.
 
 - **Performance** — no framework, no runtime fetches beyond the vendor bundle and fonts; DPR ≤ 2; the 3D loop pauses on hidden tabs; timers never trigger a full re-render (only the clocks/rings are patched).
 - **Accessibility** — semantic landmarks, `aria-live` toasts, `role="alertdialog"` banner, focus trapping in modals, visible focus rings, skip link, AA-contrast palette, colour never used alone.
 - **Security** — all user text is escaped before it reaches the DOM; the server blocks path traversal and sets `X-Content-Type-Options: nosniff`.
-- **Deploy** — static output: `node server.cjs` (any port via `PORT`), or drop the folder on any static host/CDN.
 
 ## 8. Team
 

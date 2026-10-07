@@ -66,8 +66,14 @@ function animateNumber(node, from, to, duration = 620) {
   const sign = diff > 0 ? '+' : '';
   const decimals = Number.isInteger(to) && Number.isInteger(from) ? 0 : 1;
 
-  function step(now) {
-    const progress = Math.min(1, (now - start) / duration);
+  function step() {
+    // Measure elapsed time from performance.now() and clamp to [0, 1].
+    // The rAF timestamp is ignored on purpose: virtual-clock renderers
+    // (headless screenshotters, embedded previews, some kiosk browsers) hand
+    // out timestamps on a different timebase, which would push `progress`
+    // negative and render absurd values like "-4492" instead of "180".
+    const elapsed = performance.now() - start;
+    const progress = Math.max(0, Math.min(1, elapsed / duration));
     const eased = 1 - Math.pow(1 - progress, 3);
     const value = from + diff * eased;
     node.textContent = sign === '+' && progress < 1 ? `${value > from ? '+' : ''}${Math.round(value)}` : value.toFixed(decimals);

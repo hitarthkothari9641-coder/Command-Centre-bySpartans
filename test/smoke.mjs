@@ -626,6 +626,38 @@ await test('Icons · the in-app icon set is complete (nothing falls back)', () =
   assert.deepEqual(emptyOrMalformed, [], `icons with no geometry: ${emptyOrMalformed.join(', ')}`);
 });
 
+await test('Counters never render out-of-range values (foreign rAF clock)', async () => {
+  // Regression guard: virtual-clock renderers (headless screenshotters,
+  // embedded previews) pass rAF timestamps from a different timebase than
+  // performance.now(). That used to yield negative progress and print absurd
+  // values such as "-4492" instead of "180".
+  nav('leaderboard');
+  await new Promise((resolve) => setTimeout(resolve, 60));
+
+  const originalRaf = window.requestAnimationFrame;
+  window.requestAnimationFrame = (cb) => originalRaf.call(window, () => cb(0));
+
+  const firstRow = $('.lb-row');
+  const scoreNode = () => $('.lb-row [data-count-to]');
+  const before = Number(scoreNode().dataset.countTo);
+  click(firstRow.querySelector('[data-action="points:quick"][data-delta="10"]'));
+
+  const expected = before + 10;
+  const frames = [];
+  for (let i = 0; i < 8; i += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 45));
+    frames.push(Number(String(scoreNode().textContent).replace(/[^0-9.-]/g, '')));
+  }
+  window.requestAnimationFrame = originalRaf;
+
+  const outOfRange = frames.filter((value) => !(value >= 0 && value <= expected));
+  assert.deepEqual(outOfRange, [], `counter rendered out-of-range values: ${frames.join(', ')}`);
+  // And the settle safety net still lands on the real value.
+  await new Promise((resolve) => setTimeout(resolve, 1100));
+  assert.equal(Number(String(scoreNode().textContent).replace(/[^0-9.-]/g, '')), expected, 'counter settles on the true value');
+  click(scoreNode().closest('.lb-row').querySelector('[data-action="points:quick"][data-delta="-10"]'));
+});
+
 await test('No runtime errors were logged during the session', async () => {
   const unique = [...new Set(errors)].filter((entry) => !/Not implemented/i.test(entry));
   assert.equal(unique.length, 0, unique.slice(0, 5).join(' | '));

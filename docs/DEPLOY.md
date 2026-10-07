@@ -4,6 +4,9 @@
 zero-dependency Node server (`server.cjs`). That makes it a perfect Render Web Service —
 no database, no secrets, no external services.
 
+> **Reference deployment:** <https://command-centre-byspartans.onrender.com/> — the Web Service created from this
+> repo, running `node server.cjs` with the `/healthz` health check.
+
 Two supported paths:
 
 | Path | Best for | Notes |
@@ -35,6 +38,11 @@ Merge the feature branch into your default branch (`main`) first — Render depl
 4. Render reads `render.yaml`, shows the `bigboss-command-center` service → **Apply**.
 5. Wait ~1–2 min for the first build. Your URL appears at the top of the service page:
    `https://bigboss-command-center.onrender.com`
+
+> The live deployment is a manually created Web Service named **`command-centre-byspartans`**
+> (<https://command-centre-byspartans.onrender.com/>) — a name chosen in the dashboard, which is
+> why it differs from the blueprint's `bigboss-command-center`. Both configurations are identical;
+> a service created by hand simply keeps whatever name you type in step 1 of Path B.
 
 Render automatically:
 - runs `npm ci --omit=dev` (runtime needs no dependencies at all — the app is static),
@@ -79,9 +87,11 @@ Render automatically:
 
    ```
    🏛️  Big Boss · Command Center v1.0.0 listening on 0.0.0.0:10000
-       → https://bigboss-command-center.onrender.com  (env: production, Render)
-       → health check: https://bigboss-command-center.onrender.com/healthz
+       → https://command-centre-byspartans.onrender.com  (env: production, Render)
+       → health check: https://command-centre-byspartans.onrender.com/healthz
    ```
+
+   (The log prints `RENDER_EXTERNAL_URL`, so it shows whatever name your service has.)
 
 > `head`/`tests` are not run during deploy. Run `npm test` locally or in CI.
 
@@ -113,7 +123,7 @@ certificate automatically. Nothing in the app hard-codes a hostname, so no code 
 ## Verify a deployment
 
 ```bash
-BASE=https://bigboss-command-center.onrender.com
+BASE=https://command-centre-byspartans.onrender.com   # the live deployment
 
 curl -s $BASE/healthz                     # {"status":"ok",…}
 curl -sI $BASE/site.webmanifest | grep -i content-type   # application/manifest+json
