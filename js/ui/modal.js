@@ -110,6 +110,7 @@ export function confirmModal({ title, desc, body = '', confirmLabel = 'Confirm',
 export function initModal() {
   const { modal, body, foot } = nodes();
   if (!modal) return;
+  $('#modalClose')?.addEventListener('click', closeModal);
   modal.addEventListener('mousedown', (event) => {
     if (event.target === modal) closeModal();
   });

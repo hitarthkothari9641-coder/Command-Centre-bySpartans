@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Render Blueprint — SPARTANS X TECH BOSS · Big Boss Command Center
+#
+# Deploy: Render Dashboard → New → Blueprint → pick this repo → Apply.
+# Render reads this file and provisions everything below automatically.
+#
+# Why a Web Service (and not a Static Site)?
+#   • /healthz liveness endpoint + smart SPA fallback (asset 404s never return HTML),
+#   • correct MIME type for site.webmanifest,
+#   • long-lived caching + gzip for the vendor bundle and fonts,
+#   • room to grow (API routes, real-time channels) without changing hosts.
+#   A Static Site would also work — see docs/DEPLOY.md for that path.
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  - type: web
+    name: bigboss-command-center
+    runtime: node
+    plan: free # bump to "starter" for always-on (no cold starts)
+    region: singapore # closest to India; swap for oregon / frankfurt / ohio
+    branch: main # point at your default branch
+    autoDeploy: true
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.cjs
+    healthCheckPath: /healthz
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: HOST
+        value: 0.0.0.0
+      # PORT is injected by Render — server.cjs reads process.env.PORT.
+      # No secrets are required: all House state lives in the browser.
+      - key: RENDER
+        sync: false # set to "true" in the dashboard if you want the env flagged as Render

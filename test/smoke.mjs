@@ -552,6 +552,80 @@ await test('Persistence — the House survives a reload', async () => {
   assert.ok(parsed.timer && parsed.timer.duration > 0, 'timer persisted');
 });
 
+await test('Icons · every declared icon link resolves to a real file', () => {
+  const html = fs.readFileSync(path.join(REPO, 'index.html'), 'utf8');
+  const links = [...html.matchAll(/<link\b[^>]*>/g)].map((match) => {
+    const tag = match[0];
+    return {
+      rel: (tag.match(/rel="([^"]+)"/) || [, ''])[1],
+      href: (tag.match(/href="([^"]+)"/) || [, ''])[1],
+    };
+  });
+  const byRel = (name) => links.find((link) => link.rel.split(/\s+/).includes(name));
+
+  // Every local icon/brand target must exist on disk (a 404 icon = blank tab icon).
+  const local = links.filter((link) => link.href && !/^https?:|^data:/.test(link.href));
+  const missing = local
+    .map((link) => link.href.split('?')[0])
+    .filter((href) => !fs.existsSync(path.join(REPO, href)));
+  assert.deepEqual(missing, [], `missing linked files: ${missing.join(', ')}`);
+
+  assert.ok(byRel('icon')?.href.includes('favicon.ico'), 'favicon.ico is declared');
+  assert.ok(byRel('apple-touch-icon'), 'apple-touch-icon declared for iOS home screens');
+  assert.ok(byRel('mask-icon'), 'mask-icon declared for pinned Safari tabs');
+  assert.equal(byRel('manifest')?.href, 'site.webmanifest', 'web manifest declared');
+  assert.ok(byRel('preload'), 'brand assets are preloaded for a flash-free first paint');
+});
+
+await test('Icons · manifest exposes app icons + shortcuts that exist on disk', () => {
+  assert.ok(fs.existsSync(path.join(REPO, 'favicon.ico')), 'root favicon.ico present');
+  const manifest = JSON.parse(fs.readFileSync(path.join(REPO, 'site.webmanifest'), 'utf8'));
+  assert.ok(manifest.icons.length >= 4, `expected 4 manifest icons, saw ${manifest.icons.length}`);
+  assert.ok(manifest.icons.some((entry) => entry.purpose === 'maskable'), 'maskable icon declared');
+  for (const entry of manifest.icons) {
+    const rel = entry.src.replace(/^\//, '');
+    assert.ok(fs.existsSync(path.join(REPO, rel)), `manifest icon missing on disk: ${rel}`);
+  }
+  for (const shortcut of manifest.shortcuts || []) {
+    assert.ok(shortcut.url.startsWith('/#'), `shortcut deep links into the app: ${shortcut.url}`);
+  }
+  assert.equal(manifest.theme_color.toLowerCase(), '#05070d', 'manifest theme colour matches the room');
+});
+
+await test('Icons · the in-app icon set is complete (nothing falls back)', () => {
+  const iconsSource = fs.readFileSync(path.join(REPO, 'js', 'icons.js'), 'utf8');
+  const defined = [...iconsSource.matchAll(/^\s{2}'?([a-z0-9-]+)'?:\s*'/gm)].map((match) => match[1]);
+  assert.ok(defined.length >= 40, `icon library looks complete (${defined.length} icons)`);
+
+  const used = new Set();
+  const compared = new Set(); // literals used in === / !== checks, not icon names
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!full.endsWith('.js') || full.endsWith('icons.js')) continue;
+      const source = fs.readFileSync(full, 'utf8');
+      for (const match of source.matchAll(/icon\([^,)]*?'([a-zA-Z0-9-]+)'/g)) used.add(match[1]);
+      for (const match of source.matchAll(/icon:\s*'([a-zA-Z0-9-]+)'/g)) used.add(match[1]);
+      for (const match of source.matchAll(/[=!]==?\s*'([a-zA-Z0-9-]+)'/g)) compared.add(match[1]);
+    }
+  };
+  walk(path.join(REPO, 'js'));
+
+  const unknown = [...used].filter((name) => !defined.includes(name) && !compared.has(name));
+  assert.deepEqual(unknown, [], `icons referenced but not defined: ${unknown.join(', ')}`);
+  assert.ok(used.size >= 30, `views/components reference the icon library (${used.size} names)`);
+
+  const values = [...iconsSource.matchAll(/'?([a-zA-Z0-9-]+)'?:\s*'((?:[^'\\]|\\.)*)'/g)];
+  const emptyOrMalformed = values
+    .filter(([, , value]) => !/<(path|circle|rect|ellipse|line)/.test(value))
+    .map(([name]) => name);
+  assert.deepEqual(emptyOrMalformed, [], `icons with no geometry: ${emptyOrMalformed.join(', ')}`);
+});
+
 await test('No runtime errors were logged during the session', async () => {
   const unique = [...new Set(errors)].filter((entry) => !/Not implemented/i.test(entry));
   assert.equal(unique.length, 0, unique.slice(0, 5).join(' | '));

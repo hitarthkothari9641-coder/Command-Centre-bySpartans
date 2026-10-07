@@ -11,7 +11,12 @@ generated from **one master image**, so swapping in new artwork takes seconds.
 | `logo-mark.png` / `logo-mark.jpg` | 256² / 512² | sidebar crest, announcement banner, favicon, apple-touch (1x / 2x) |
 | `logo-wide.jpg` | 720×480 | dashboard hero + boot splash (1x) |
 | `logo-hero.jpg` | 1280×853 | dashboard hero + boot splash (2x) |
-| `logo-square.jpg` | 640² | apple-touch-icon / social sharing |
+| `logo-square.jpg` | 640² | centred square master for share cards |
+
+Generated into `assets/icons/` by the same command: `favicon.ico` (16/32/48),
+`favicon-48.png`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` (safe-zone padded)
+and `og-image.jpg` (1200×630). A root-level `favicon.ico` copy guarantees `/favicon.ico` always
+resolves.
 
 ## Swap in your own artwork
 

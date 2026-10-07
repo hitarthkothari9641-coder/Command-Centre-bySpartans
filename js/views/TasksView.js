@@ -59,11 +59,14 @@ export function TasksView(state, filters) {
         <header class="card__head">
           <div class="card__title"><span class="card__icon">${icon('clipboard', 15)}</span><h3>Task Board</h3></div>
           <span class="spacer"></span>
-          <div class="seg" id="taskStatusFilter" role="group" aria-label="Filter tasks">
-            ${FILTERS.map(
-              ([value, label]) =>
-                `<button type="button" data-status="${value}" class="${filters.taskStatus === value ? 'is-on' : ''}">${label}</button>`,
-            ).join('')}
+          <div class="filter-bar">
+            <span class="filter-bar__tag">${icon('filter', 12)}<span>Filter</span></span>
+            <div class="seg" id="taskStatusFilter" role="group" aria-label="Filter tasks">
+              ${FILTERS.map(
+                ([value, label]) =>
+                  `<button type="button" data-status="${value}" class="${filters.taskStatus === value ? 'is-on' : ''}">${label}</button>`,
+              ).join('')}
+            </div>
           </div>
         </header>
         <div class="card__body stack-16">

@@ -26,7 +26,7 @@ export function Header({ houseName, season, day, activeCount, nominees, title, s
 
       <div class="topbar__actions">
         <span class="chip chip--live" title="House surveillance is live">
-          <i class="live-dot"></i> Live
+          ${icon('scan', 12)}<i class="live-dot"></i> Live
         </span>
 
         <span class="chip chip--plain ${nominees ? 'chip--danger' : 'chip--success'}" title="Danger Zone status">

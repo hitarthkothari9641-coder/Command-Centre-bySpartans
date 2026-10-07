@@ -13,6 +13,10 @@ npm start        # → http://localhost:5173
 npm test         # 28 automated feature checks (headless jsdom + esbuild)
 ```
 
+**Deploy to Render in one click:** this repo ships a `render.yaml` blueprint (Web Service,
+`/healthz` health check, immutable caching, no database). Full walkthrough, alternatives and
+verification commands: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
+
 ---
 
 ## 1. Design decisions
@@ -66,8 +70,14 @@ npm test         # 28 automated feature checks (headless jsdom + esbuild)
 │   └── views/                     # Dashboard · Contestants · Tasks · Nominations · Leaderboard
 │                                  # Announcements · Evictions · Activity · Settings
 │
-├── assets/brand/                  # SPARTANS X TECH BOSS crest + key art (see its README)
-├── scripts/sync-logo.mjs          # npm run brand:logo -- master.png  → all derivatives
+├── assets/
+│   ├── brand/                     # SPARTANS X TECH BOSS crest + key art (see its README)
+│   └── icons/                     # favicon.ico · icon-192/512 · maskable · og-image
+├── favicon.ico                    # root copy so /favicon.ico always resolves
+├── site.webmanifest               # PWA manifest (app icons, shortcuts, theme)
+├── render.yaml                    # Render blueprint (Web Service + health check)
+├── docs/DEPLOY.md                 # Render deployment guide + verification commands
+├── scripts/sync-logo.mjs          # npm run brand:logo -- master.png  → all art + icons
 │
 ├── vendor/
 │   ├── background.bundle.js       # generated: npm run build:vendor
@@ -88,8 +98,25 @@ npm run brand:logo -- ~/Downloads/my-logo.jpg   # swap in your own artwork → r
 ```
 
 Derivatives are produced from one full-resolution master (`logo-source.jpg`, 1536×1024) by `scripts/sync-logo.mjs`
-(ImageMagick `convert`): 256²/512² crest, 720×480 + 1280×853 key art, 640² square icon. See
-`assets/brand/README.md` for the crop knobs.
+(ImageMagick `convert`): 256²/512² crest, 720×480 + 1280×853 key art, 640² square icon **and the icon set** —
+`favicon.ico` (16/32/48), `favicon-48.png`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` (safe-zone
+padded) and the 1200×630 `og-image.jpg` social card. All crops are forced square, so an odd master aspect ratio
+can never squash an icon. See `assets/brand/README.md` for the crop knobs.
+
+### Icon map
+
+| Icon | Where it is used |
+|---|---|
+| `favicon.ico` (root) | Legacy + default browser requests — always resolves, never falls back to HTML |
+| `assets/icons/favicon-48.png` | Modern browsers (48 px) |
+| `assets/icons/icon-192.png` | Android home screen, apple-touch-icon |
+| `assets/icons/icon-512.png` | PWA install prompt |
+| `assets/icons/icon-maskable-512.png` | Android adaptive/maskable launcher icon |
+| `assets/icons/og-image.jpg` | `og:image` + `twitter:image` link previews |
+| `assets/brand/logo-mark.png` | In-app crest: sidebar, hero, announcement banner |
+
+Declared in `index.html` (`<link rel="icon">`, `apple-touch-icon`, `mask-icon`, `manifest`) and
+`site.webmanifest` (name, theme colour `#05070d`, standalone display, four app shortcuts).
 
 ## 4. Screenshots
 
@@ -196,6 +223,12 @@ after a page refresh (state persists in `localStorage` under the `bb-command-cen
 - [ ] Make an announcement → the banner shows the crest badge and the brand lockup in its footer.
 - [ ] Browser tab shows the crest favicon; the tab title reads "… · Big Boss Command Center".
 
+**Icons & PWA**
+- [ ] Browser tab shows the crest favicon (not a blank/grey page icon).
+- [ ] `curl -sI <url>/favicon.ico` → `200` + `image/x-icon`; `<url>/nope.png` → `404`, never HTML.
+- [ ] `curl -sI <url>/site.webmanifest` → `application/manifest+json`; Chrome DevTools → Application → Manifest lists 4 icons.
+- [ ] Share the URL in a chat app: the preview shows the SPARTANS X TECH BOSS `og-image` card.
+
 **System**
 - [ ] Refresh the page: every change is still there (localStorage).
 - [ ] Settings → **Reset demo data** restores the 12-contestant season; **Empty the House** clears it.
@@ -203,6 +236,10 @@ after a page refresh (state persists in `localStorage` under the `bb-command-cen
 - [ ] Keyboard: `1…9` switch sections, `B` collapses the sidebar, `N` opens the announcement composer, `T` toggles the timer, `Esc` closes overlays, `Tab` walks every control with a visible focus ring.
 
 ## 7. Production notes
+
+- **Deploy** — Render Web Service via `render.yaml` (`npm ci --omit=dev` → `node server.cjs`,
+  health check `/healthz`, `autoDeploy` on `main`). Guide: **[docs/DEPLOY.md](docs/DEPLOY.md)**.
+  Any static host works too, since the runtime has zero dependencies.
 
 - **Performance** — no framework, no runtime fetches beyond the vendor bundle and fonts; DPR ≤ 2; the 3D loop pauses on hidden tabs; timers never trigger a full re-render (only the clocks/rings are patched).
 - **Accessibility** — semantic landmarks, `aria-live` toasts, `role="alertdialog"` banner, focus trapping in modals, visible focus rings, skip link, AA-contrast palette, colour never used alone.

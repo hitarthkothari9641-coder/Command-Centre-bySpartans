@@ -69,12 +69,12 @@ export function TeamStandings(stats) {
 /** MVP strip — highest scorer and most productive contestant. */
 export function MvpStrip(stats) {
   const items = [
-    { label: 'Highest Scorer', contestant: stats.highestScorer, tone: 'gold', icon: 'crown', detail: (c) => `${c.points} pts` },
+    { label: 'Highest Scorer', contestant: stats.highestScorer, tone: 'gold', icon: 'sparkles', detail: (c) => `${c.points} pts` },
     {
       label: 'Most Tasks Completed',
       contestant: stats.mostTasks,
       tone: 'emerald',
-      icon: 'check',
+      icon: 'flame',
       detail: (c) => `${c.tasksCompleted} task${c.tasksCompleted === 1 ? '' : 's'}`,
     },
     {

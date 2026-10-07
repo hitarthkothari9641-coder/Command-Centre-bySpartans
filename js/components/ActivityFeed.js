@@ -2,6 +2,12 @@ import { esc, timeAgo, clockTime, fullDateTime } from '../utils/dom.js';
 import { icon } from '../utils/icons.js';
 import { EmptyState } from './EmptyState.js';
 
+/** Points entries carry their delta, so the feed can show direction. */
+const feedIcon = (entry) => {
+  if (entry.type === 'points' && typeof entry.delta === 'number') return entry.delta > 0 ? 'arrow-up' : 'arrow-down';
+  return TYPE_ICON[entry.type] || 'activity';
+};
+
 const TYPE_ICON = {
   points: 'zap',
   nomination: 'alert',
@@ -31,7 +37,7 @@ export function ActivityFeed(entries, { limit = 8, scroll = false, emptyText = '
         .map(
           (entry) => `
         <li class="feed__item" data-type="${esc(entry.type)}">
-          <span class="feed__icon">${icon(TYPE_ICON[entry.type] || 'activity', 13)}</span>
+          <span class="feed__icon">${icon(feedIcon(entry), 13)}</span>
           <div class="feed__body">
             <div class="feed__text">${esc(entry.message)}</div>
           </div>

@@ -22,14 +22,17 @@ export function LeaderboardView(state, filters) {
       </div>
       <span class="spacer"></span>
       <div class="view-head__actions">
-        <div class="seg" id="boardTeamFilter" role="group" aria-label="Filter by team">
-          <button type="button" data-team="all" class="${filters.team === 'all' ? 'is-on' : ''}">All teams</button>
-          ${teams
-            .map(
-              (team) =>
-                `<button type="button" data-team="${esc(team)}" class="${filters.team === team ? 'is-on' : ''}">${esc(team)}</button>`,
-            )
-            .join('')}
+        <div class="filter-bar">
+          <span class="filter-bar__tag">${icon('filter', 12)}<span>Team</span></span>
+          <div class="seg" id="boardTeamFilter" role="group" aria-label="Filter by team">
+            <button type="button" data-team="all" class="${filters.team === 'all' ? 'is-on' : ''}">All teams</button>
+            ${teams
+              .map(
+                (team) =>
+                  `<button type="button" data-team="${esc(team)}" class="${filters.team === team ? 'is-on' : ''}">${esc(team)}</button>`,
+              )
+              .join('')}
+          </div>
         </div>
       </div>
     </div>

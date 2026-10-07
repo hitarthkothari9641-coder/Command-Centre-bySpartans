@@ -8,12 +8,31 @@
   <meta name="theme-color" content="#05070d" />
   <meta name="color-scheme" content="dark" />
 
-  <meta property="og:title" content="Big Boss · Command Center" />
+  <meta name="application-name" content="Tech Boss Command Center" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Tech Boss" />
+
+  <meta property="og:title" content="SPARTANS X TECH BOSS — Big Boss · Command Center" />
   <meta property="og:description" content="Mission-control dashboard for the Tech House reality show. Big Boss is watching." />
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Big Boss · Command Center" />
+  <meta property="og:image" content="assets/icons/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="SPARTANS X TECH BOSS logo — red Spartan and cyber eye with gold wordmark" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SPARTANS X TECH BOSS — Big Boss · Command Center" />
+  <meta name="twitter:description" content="Surveillance control room for the Tech House: leaderboard, tasks, nominations, immunity and evictions." />
+  <meta name="twitter:image" content="assets/icons/og-image.jpg" />
 
-  <link rel="icon" type="image/png" href="assets/brand/logo-mark.png" />
-  <link rel="apple-touch-icon" href="assets/brand/logo-square.jpg" />
+  <!-- ── Icons: .ico for legacy/default requests, PNG for modern browsers ── -->
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-192.png" />
+  <link rel="mask-icon" href="assets/brand/logo-mark.png" color="#facc15" />
+  <link rel="manifest" href="site.webmanifest" />
 
   <!-- Brand art is above the fold: fetch it with the app shell -->
   <link rel="preload" as="image" href="assets/brand/logo-mark.png" />
@@ -82,6 +101,11 @@
       <footer class="app-footer">
         <span class="row-8">
           <i class="live-dot"></i>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--text-3)">
+            <path d="M5 12.5a10 10 0 0 1 14 0" /><path d="M8.5 16a5.5 5.5 0 0 1 7 0" />
+            <circle cx="12" cy="19.5" r="1" />
+          </svg>
           <span class="fs-xs muted">Surveillance live · Tech House feed encrypted</span>
         </span>
         <span class="spacer"></span>
@@ -93,6 +117,10 @@
   <!-- ── Overlays ───────────────────────────────────────────────────── -->
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
     <div class="modal__card glass">
+      <button class="modal__close" id="modalClose" type="button" aria-label="Close dialog">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" /></svg>
+      </button>
       <div class="modal__head">
         <h2 class="modal__title" id="modalTitle">Title</h2>
         <p class="modal__desc" id="modalDesc"></p>

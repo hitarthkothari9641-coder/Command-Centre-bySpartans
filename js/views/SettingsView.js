@@ -57,12 +57,12 @@ export function SettingsView(state) {
           <label class="switch">
             <input type="checkbox" id="backgroundToggle" ${state.ui.background ? 'checked' : ''} />
             <span class="switch__track"></span>
-            <span>Animated 3D control-room background</span>
+            <span>${icon('eye', 13)} Animated 3D control-room background</span>
           </label>
           <label class="switch">
             <input type="checkbox" id="sidebarToggle" ${state.ui.sidebar === 'collapsed' ? 'checked' : ''} />
             <span class="switch__track"></span>
-            <span>Collapse the sidebar by default</span>
+            <span>${icon('panel-left', 13)} Collapse the sidebar by default</span>
           </label>
           <p class="fs-xs muted">
             ${icon('info', 12)} The background respects <span class="kbd">prefers-reduced-motion</span> and pauses when the tab is hidden.

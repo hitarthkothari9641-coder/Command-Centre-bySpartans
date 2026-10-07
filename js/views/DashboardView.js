@@ -68,7 +68,7 @@ export function DashboardView(state) {
       label: 'Nominees',
       value: stats.nomineeCount,
       meta: stats.nomineeCount ? `Round ${stats.round} · Danger Zone` : 'Nobody at risk',
-      icon: 'alert',
+      icon: 'target',
       tone: 'crimson',
       countKey: 'stat:nominees',
     },
@@ -95,7 +95,7 @@ export function DashboardView(state) {
     ${
       !state.ui.onboarded
         ? `<div class="hint-banner">
-             <span class="chip chip--live">${icon('eye', 12)} First time here</span>
+             <span class="chip chip--live">${icon('help-circle', 12)} First time here</span>
              <span style="flex:1">Big Boss is watching. Use <strong>Make Announcement</strong> to broadcast, grant immunity to protect a contestant, and the Danger Zone to nominate.</span>
              <button class="btn btn--sm btn--ghost" data-action="ui:onboarded">Got it</button>
            </div>`

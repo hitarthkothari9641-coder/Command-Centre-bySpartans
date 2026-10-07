@@ -33,11 +33,14 @@ export function ActivityView(state, filters) {
     </div>
 
     <div class="toolbar">
-      <div class="seg" id="logTypeFilter" role="group" aria-label="Filter log by event type">
-        ${TYPES.map(
-          ([value, label]) =>
-            `<button type="button" data-type="${value}" class="${filters.logType === value ? 'is-on' : ''}">${label}</button>`,
-        ).join('')}
+      <div class="filter-bar">
+        <span class="filter-bar__tag">${icon('filter', 12)}<span>Event</span></span>
+        <div class="seg" id="logTypeFilter" role="group" aria-label="Filter log by event type">
+          ${TYPES.map(
+            ([value, label]) =>
+              `<button type="button" data-type="${value}" class="${filters.logType === value ? 'is-on' : ''}">${label}</button>`,
+          ).join('')}
+        </div>
       </div>
       <span class="spacer"></span>
       <span class="fs-xs muted">${entries.length} event${entries.length === 1 ? '' : 's'} shown</span>
@@ -84,7 +87,7 @@ export function ActivityView(state, filters) {
 
         <section class="card glass">
           <header class="card__head">
-            <div class="card__title"><span class="card__icon">${icon('clock', 15)}</span><h3>House Pulse</h3></div>
+            <div class="card__title"><span class="card__icon">${icon('route', 15)}</span><h3>House Pulse</h3></div>
           </header>
           <div class="card__body stack-8">
             <div class="kv-row"><span class="kv-row__k">Round</span><span class="kv-row__v">${stats.round}</span></div>

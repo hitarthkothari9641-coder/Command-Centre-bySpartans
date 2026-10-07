@@ -56,11 +56,14 @@ export function ContestantsView(state, filters) {
         <input class="input input--search" id="contestantSearch" type="search" placeholder="Search contestants…"
           value="${esc(filters.query)}" aria-label="Search contestants" />
       </div>
-      <div class="seg" id="contestantStatusFilter" role="group" aria-label="Filter by status">
+      <div class="filter-bar">
+        <span class="filter-bar__tag">${icon('filter', 12)}<span>Status</span></span>
+        <div class="seg" id="contestantStatusFilter" role="group" aria-label="Filter by status">
         ${STATUS_FILTERS.map(
           ([value, label]) =>
             `<button type="button" data-status="${value}" class="${filters.status === value ? 'is-on' : ''}">${label}</button>`,
-        ).join('')}
+          ).join('')}
+        </div>
       </div>
       <select class="select" id="contestantTeamFilter" style="width:auto" aria-label="Filter by team">
         <option value="all">All teams</option>
