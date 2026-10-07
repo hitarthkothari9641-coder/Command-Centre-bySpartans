@@ -3,125 +3,125 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Big Boss Command Centre · Tech House</title>
-  <meta name="description" content="Big Boss Command Centre — real-time control of contestants, tasks, points, nominations, immunity, the Danger Zone and evictions in the Tech House." />
-  <meta name="theme-color" content="#0a0c0f" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23E8B341'/%3E%3Ctext x='16' y='22' font-size='16' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%2314100a'%3EB%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="styles.css" />
+  <title>Big Boss · Command Center — Tech House</title>
+  <meta name="description" content="Big Boss Command Center — a surveillance-style control room for the Tech House: contestants, leaderboard, tasks, points, captaincy, nominations, immunity, the Danger Zone, announcements, timer, statistics and evictions." />
+  <meta name="theme-color" content="#05070d" />
+  <meta name="color-scheme" content="dark" />
+
+  <meta property="og:title" content="Big Boss · Command Center" />
+  <meta property="og:description" content="Mission-control dashboard for the Tech House reality show. Big Boss is watching." />
+  <meta property="og:type" content="website" />
+
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2305070d'/%3E%3Cpath d='M16 8c-4.2 0-7.4 3-8.6 8 1.2 5 4.4 8 8.6 8s7.4-3 8.6-8c-1.2-5-4.4-8-8.6-8zm0 11.5A3.5 3.5 0 1 1 16 12.5a3.5 3.5 0 0 1 0 7z' fill='%2322d3ee'/%3E%3C/svg%3E"
+  />
+
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/animations.css" />
+  <link rel="stylesheet" href="styles/layout.css" />
+  <link rel="stylesheet" href="styles/components.css" />
 </head>
-<body>
-  <div class="app">
-    <!-- ── Sidebar ───────────────────────────────────────────── -->
-    <aside class="sidebar" aria-label="Primary navigation">
-      <div class="brand">
-        <div class="brand-mark">BB</div>
-        <div class="brand-text">
-          <strong>Command Centre</strong>
-          <span id="houseLabel">Tech House · S1</span>
-        </div>
+
+<body data-bg="on">
+  <a class="skip-link" href="#viewHost">Skip to House control</a>
+
+  <!-- ── Background visual stack ────────────────────────────────────── -->
+  <canvas id="bgCanvas" class="bg-canvas" aria-hidden="true"></canvas>
+  <div class="bg-layer bg-glow" aria-hidden="true"></div>
+  <div class="bg-layer bg-scanlines" aria-hidden="true"></div>
+  <div class="bg-layer bg-noise" aria-hidden="true"></div>
+  <div class="bg-layer bg-sweep" aria-hidden="true"></div>
+  <div class="bg-layer bg-vignette" aria-hidden="true"></div>
+
+  <!-- ── App shell ──────────────────────────────────────────────────── -->
+  <div class="app" id="app" data-sidebar="expanded">
+    <aside class="sidebar" id="sidebar" aria-label="Command Center navigation"></aside>
+
+    <main class="main" id="main">
+      <div id="header"></div>
+
+      <div class="view-host" id="viewHost">
+        <!-- First-paint skeleton (replaced on boot, prevents layout shift) -->
+        <section class="view is-active">
+          <div class="skeleton-grid">
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+          </div>
+          <div class="skeleton-grid skeleton-grid--stack">
+            <div class="skeleton skeleton--row"></div>
+            <div class="skeleton skeleton--row"></div>
+            <div class="skeleton skeleton--row"></div>
+            <div class="skeleton skeleton--row"></div>
+          </div>
+        </section>
       </div>
 
-      <div class="nav-label">Control</div>
-      <button class="nav-item active" data-view="overview" data-key="1">
-        <span class="ico" data-icon="grid"></span> Overview
-      </button>
-      <button class="nav-item" data-view="contestants" data-key="2">
-        <span class="ico" data-icon="users"></span> Contestants
-        <span class="pill zero" id="navContestants">0</span>
-      </button>
-      <button class="nav-item" data-view="tasks" data-key="3">
-        <span class="ico" data-icon="check"></span> Tasks
-        <span class="pill zero" id="navTasks">0</span>
-      </button>
-      <button class="nav-item" data-view="leaderboard" data-key="4">
-        <span class="ico" data-icon="bar"></span> Leaderboard
-      </button>
-      <button class="nav-item" data-view="danger" data-key="5">
-        <span class="ico" data-icon="shield"></span> Nominations
-        <span class="pill zero" id="navDanger">0</span>
-      </button>
-
-      <div class="nav-label">House</div>
-      <button class="nav-item" data-view="announcements" data-key="6">
-        <span class="ico" data-icon="megaphone"></span> Announcements
-      </button>
-      <button class="nav-item" data-view="evictions" data-key="7">
-        <span class="ico" data-icon="logout"></span> Evictions
-      </button>
-      <button class="nav-item" data-view="activity" data-key="8">
-        <span class="ico" data-icon="activity"></span> Activity Log
-      </button>
-      <button class="nav-item" data-view="settings" data-key="9">
-        <span class="ico" data-icon="settings"></span> Settings
-      </button>
-
-      <div class="sidebar-foot">
-        <div class="captain-card" id="sidebarCaptain"></div>
-        <button class="ghost-link" id="btnShortcuts">Shortcuts · 1–9</button>
-      </div>
-    </aside>
-
-    <!-- ── Main ──────────────────────────────────────────────── -->
-    <main class="main">
-      <header class="topbar">
-        <div>
-          <h1 id="viewTitle">House Overview</h1>
-          <div class="sub" id="viewSub">Live control room</div>
-        </div>
-        <div class="topbar-spacer"></div>
-        <div class="chip" id="chipDay" title="Current day in the House"></div>
-        <div class="chip" id="chipClock" title="Local time"></div>
-        <div class="chip" id="chipTimer" title="Task timer status"></div>
-        <button class="btn primary" id="btnAnnounce">
-          <span data-icon="megaphone"></span> Announce
-        </button>
-      </header>
-
-      <div id="views">
-        <!-- OVERVIEW -->
-        <section class="view active" id="view-overview"></section>
-        <!-- CONTESTANTS -->
-        <section class="view" id="view-contestants"></section>
-        <!-- TASKS -->
-        <section class="view" id="view-tasks"></section>
-        <!-- LEADERBOARD -->
-        <section class="view" id="view-leaderboard"></section>
-        <!-- DANGER -->
-        <section class="view" id="view-danger"></section>
-        <!-- ANNOUNCEMENTS -->
-        <section class="view" id="view-announcements"></section>
-        <!-- EVICTIONS -->
-        <section class="view" id="view-evictions"></section>
-        <!-- ACTIVITY -->
-        <section class="view" id="view-activity"></section>
-        <!-- SETTINGS -->
-        <section class="view" id="view-settings"></section>
-      </div>
+      <footer class="app-footer">
+        <span class="row-8">
+          <i class="live-dot"></i>
+          <span class="fs-xs muted">Surveillance live · Tech House feed encrypted</span>
+        </span>
+        <span class="spacer"></span>
+        <span class="fs-xs muted">Big Boss Command Center v2.0 · Big Boss is watching.</span>
+      </footer>
     </main>
   </div>
 
-  <!-- ── Overlays ────────────────────────────────────────────── -->
-  <div class="broadcast" id="broadcast" role="status" aria-live="assertive">
-    <div class="bc-card" id="broadcastCard">
-      <div class="bc-tag">Big Boss Announcement</div>
-      <div class="bc-msg" id="broadcastMsg"></div>
-      <div class="bc-foot">Press <span class="kbd">Esc</span> or click anywhere to dismiss</div>
-    </div>
-  </div>
-
-  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="m-card">
-      <div class="m-head">
-        <h3 id="modalTitle">Title</h3>
-        <p id="modalDesc"></p>
+  <!-- ── Overlays ───────────────────────────────────────────────────── -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal__card glass">
+      <div class="modal__head">
+        <h2 class="modal__title" id="modalTitle">Title</h2>
+        <p class="modal__desc" id="modalDesc"></p>
       </div>
-      <div class="m-body" id="modalBody"></div>
-      <div class="m-foot" id="modalFoot"></div>
+      <div class="modal__body" id="modalBody"></div>
+      <div class="modal__foot" id="modalFoot"></div>
     </div>
   </div>
 
-  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="banner" id="banner" role="alertdialog" aria-modal="true" aria-labelledby="bannerText" aria-hidden="true">
+    <span class="banner__scan" aria-hidden="true"></span>
+    <div class="banner__card" id="bannerCard" data-tone="accent">
+      <button class="btn btn--icon btn--ghost banner__close" id="bannerClose" type="button" aria-label="Dismiss announcement">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" /></svg>
+      </button>
 
-  <script type="module" src="js/app.js"></script>
+      <div class="banner__eye" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </div>
+
+      <div class="banner__body">
+        <div class="banner__tag" id="bannerTag">Big Boss · Announcement</div>
+        <p class="banner__text" id="bannerText"></p>
+        <div class="banner__foot">
+          <span class="chip chip--live">House-wide broadcast</span>
+          <span>Transmitted <span id="bannerStamp">--:--:--</span></span>
+        </div>
+      </div>
+
+      <span class="banner__progress" id="bannerProgress" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+
+  <noscript>
+    <p style="padding: 24px; color: #e8eefc">
+      The Command Center needs JavaScript enabled to monitor the Tech House.
+    </p>
+  </noscript>
+
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

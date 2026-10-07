@@ -2,20 +2,23 @@
   "name": "command-centre-by-spartans",
   "version": "1.0.0",
   "private": true,
-  "description": "Big Boss Command Centre \u2014 real-time control of contestants, tasks, points, nominations, immunity, the Danger Zone and evictions in the Tech House.",
+  "description": "Big Boss \u00b7 Command Center \u2014 a surveillance-style control room for the Tech House: contestants, leaderboard, tasks, points, captaincy, nominations, immunity, Danger Zone, announcements, timer, statistics and evictions.",
   "keywords": [
     "bigboss",
-    "command-centre",
-    "hackathon",
+    "command-center",
+    "control-room",
+    "threejs",
     "vanilla-js",
-    "dashboard"
+    "dashboard",
+    "reality-show"
   ],
   "license": "MIT",
   "scripts": {
     "start": "node server.cjs",
     "dev": "node server.cjs",
-    "check": "node --check server.cjs && node --check js/store.js && node --check js/app.js && node --check js/icons.js",
-    "test": "node test/smoke.mjs"
+    "test": "node test/smoke.mjs",
+    "build:vendor": "esbuild js/background-scene.js --bundle --format=esm --minify --outfile=vendor/background.bundle.js",
+    "check": "node --check server.cjs && for f in js/*.js js/**/*.js; do node --check \"$f\" || exit 1; done && echo \"syntax OK\""
   },
   "engines": {
     "node": ">=18"
@@ -25,5 +28,8 @@
   "devDependencies": {
     "esbuild": "^0.28.2",
     "jsdom": "^30.1.2"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
   }
 }

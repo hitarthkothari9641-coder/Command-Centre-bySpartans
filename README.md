@@ -1,74 +1,188 @@
-# 🎛️ Big Boss Command Centre — Tech House
+# 🎛️ BIG BOSS · COMMAND CENTER — Tech House
 
-A production-ready, minimalist control room for **Big Boss** to monitor and control the Tech House in real time:
-contestants, tasks, points, captaincy, nominations, immunity, the Danger Zone, announcements, a task timer,
-live statistics and evictions — all in one screen, with zero dependencies at runtime.
+A production-grade, **surveillance-control-room** dashboard that lets Big Boss monitor and control the Tech House
+in real time: contestants, live leaderboard, tasks, points, captaincy, nominations, immunity, the Danger Zone,
+cinematic announcements, the task timer, house statistics and evictions.
 
-> **Team:** Spartans · **Season:** 1 · **Stack:** vanilla ES modules + a zero-dependency Node static server.
+Dark glassmorphism UI · animated 3D background (Three.js) · centralized reducer state · zero runtime dependencies
+beyond a self-hosted vendor bundle.
 
----
-
-## 🚀 Run it
-
-```bash
-npm start            # → http://localhost:5173
 ```
-
-The app is a static bundle — any static host works (`python3 -m http.server`, Netlify, Vercel, GitHub Pages…).
-
-```bash
-npm test             # 20 automated feature checks (headless jsdom + esbuild)
-npm run check        # syntax-check every shipped file
+npm install
+npm start        # → http://localhost:5173
+npm test         # 28 automated feature checks (headless jsdom + esbuild)
 ```
 
 ---
 
-## ✅ Mandatory deliverables — where to find them
+## 1. Design decisions
 
-| # | Feature | Where it lives | How it works |
-|---|---------|----------------|--------------|
-| 1 | **Contestant Management** | `Contestants` view | 12 seeded contestants (8+ required) with name, team (Alpha/Bravo/Charlie/Delta), points and status (active / nominated / immune / evicted). Add, edit and delete contestants; filter by status, team and search. |
-| 2 | **Live Leaderboard** | `Leaderboard` view + Overview | Rankings recompute on every point change, with FLIP row animations, rank flashes, per-contestant score bars and a top-3 podium. |
-| 3 | **Task Management** | `Tasks` view | Assign tasks (title, description, points, multi-assignee), move them pending → in progress → completed / failed, reopen or delete. Completed tasks pay points to every assignee automatically. |
-| 4 | **Point System** | Everywhere | Quick **−10 / +5 / +10 / +25** buttons on each contestant card and leaderboard row, plus a custom modal with any delta and a reason. Points can never go negative and evicted contestants cannot be scored. |
-| 5 | **Captaincy** | Overview · Contestants | Appoint, transfer or revoke the House Captain. The Captain is highlighted across the UI (sidebar card, badges) and **cannot be nominated** while in office. |
-| 6 | **Nominations** | `Nominations` view | Nominate one or many contestants with an optional reason, in numbered rounds. Duplicate nominations, captain nominations and self-nominations are rejected with a toast. |
-| 7 | **Immunity** | `Nominations` · Contestants | Grant / revoke immunity. Immune contestants are **hard-blocked from nomination** (button disabled + server-side guard) and any existing nomination is automatically revoked when immunity is granted. |
-| 8 | **Danger Zone** | `Nominations` · Overview | A dedicated, always-visible list of every nominated contestant in the current round, with withdraw and evict actions, a live count badge in the sidebar and an at-a-glance warning ticker. |
-| 9 | **Big Boss Announcements** | `Announcements` view + header | Compose a message with a tone (highlight / info / warning / good news) and broadcast it — a full-screen "Big Boss" overlay takes over the House instantly and every message is archived with a replay button. |
-| 10 | **Task Timer** | `Tasks` · Overview | Countdown ring with start, pause and reset, quick presets (01:00 → 15:00), custom durations and a live label. Turns red and pulses under 30 seconds, fires a "TIME UP" announcement at zero, and keeps counting accurately across tab throttling and reloads (timestamp-based). |
-| 11 | **House Statistics** | Overview · Contestants | Live stats: highest scorer (MVP), most tasks completed, leading team, house points/average, task completion rate, immunity count, nominee count, eviction count and per-team standings. |
-| 12 | **Eviction** | `Evictions` view | Evict from the Danger Zone, from a contestant card, or evict the whole round at once. Evicted contestants leave the leaderboard and task assignments, keep their historical record, and can be reinstated. Evicting an immune contestant requires an explicit Big Boss override, which is recorded in the log. |
+| Decision | Why |
+|---|---|
+| **Control-room art direction** — near-black navy (`#05070d → #0b1020`), electric cyan `#22d3ee` primary, violet `#8b5cf6` secondary, crimson `#ef4444` danger, amber `#f59e0b` warning, emerald `#10b981` success, gold `#facc15` captain | Colour carries meaning, so the House can be read at a glance. Each tone is always paired with an icon + label (never colour alone). |
+| **Glass surfaces on a 3D room** | `backdrop-filter` cards over a wireframe grid floor, drifting node network and a slow "eye" motif give depth without stealing attention. Vignette + scanlines + grain sell the surveillance fantasy. |
+| **Three.js, tree-shaken and self-hosted** | `js/background-scene.js` → `vendor/background.bundle.js` (527 KB minified / 135 KB gzip, no CDN, works offline). DPR capped at 2, particle counts reduced on mobile, animation pauses on `visibilitychange`, and the whole scene is replaced by a static gradient under `prefers-reduced-motion` or without WebGL. |
+| **Components emit markup, one action layer mutates state** | Views are pure `state → HTML` renderers. Every control is `data-action="namespace:verb"` and handled in `js/actions.js`, so behaviour is greppable and never duplicated. |
+| **Pure reducer as the only writer** | `js/store/reducer.js` returns new state, validates House rules and throws human-readable errors (*"Meera Nair holds immunity — nomination denied."*). The UI turns those into toasts. |
+| **Progressive motion** | FLIP reordering with success/danger flashes, count-up scores (with a settle timer so a throttled tab still shows the truth), staggered card entrances, ghost-glitch removal + full-screen scanline flash on eviction, and a cinematic typewriter banner for announcements. Everything collapses under `prefers-reduced-motion`. |
+| **One primary action per card** | Points stepper or Reinstate is always the primary button; captaincy, immunity, nomination, edit and eviction live behind the ⋯ menu. Destructive actions always confirm in a modal. |
+| **Truthful DOM** | Numbers render their real value into the markup and are then animated, so the UI is correct even before/without JavaScript animation, and it is testable. |
 
----
-
-## 🧠 Design decisions
-
-- **Minimalist, dark, information-dense UI.** A single accent colour, tabular numerals, no decorative chrome — every pixel carries state (gold = captain, green = immunity, red = danger, blue = team).
-- **Real-time feel.** State changes re-render only the active view; the timer ticker patches just the clocks/rings/chips, so the countdown never stutters the UI. Leaderboard reordering uses the FLIP technique with up/down flash animation.
-- **Single source of truth.** `js/store.js` owns all state, validation and audit logging; `js/app.js` is pure rendering + event delegation; `js/icons.js` holds the inline SVG icon set. No framework, no build step required to run.
-- **Safe by construction.** Every mutation validates its preconditions and throws human-readable errors that surface as toasts (e.g. *"Zara Khan is IMMUNE and cannot be nominated."*). Destructive actions require confirmation; all user text is HTML-escaped.
-- **Persistence.** The whole House is serialised to `localStorage` on every change, with a versioned key, forward-compatible defaults, plus JSON export/import for backups and season resets.
-- **Keyboard-first.** `1–9` switch views, `N` composes an announcement, `T` starts/pauses the timer, `Esc` closes overlays, `Enter` confirms modals.
-
-## 🗂️ Project structure
+## 2. Folder structure
 
 ```
-index.html          App shell, navigation, overlays
-styles.css          Design system (tokens, components, responsive, reduced-motion)
-js/store.js         State, validation, audit log, stats, persistence
-js/app.js           Views, rendering, modals, announcements, event wiring
-js/icons.js         Inline SVG icon set
-server.cjs          Zero-dependency production static server (gzip, ETag, SPA fallback)
-test/smoke.mjs      20 headless feature checks mapped to the deliverable checklist
+.
+├── index.html                     # shell: background stack, app frame, overlays
+├── server.cjs                     # zero-dependency static server (gzip, ETag, SPA fallback)
+├── package.json                   # scripts: start · test · check · build:vendor
+│
+├── styles/
+│   ├── tokens.css                 # palette, 8px spacing, radii, type scale, motion vars, @font-face
+│   ├── base.css                   # reset, background layers, focus rings, utilities
+│   ├── layout.css                 # app shell, top bar, sidebar/tab-bar, bento + grids, breakpoints
+│   ├── components.css             # glass, buttons, badges, cards, leaderboard, timer, overlays
+│   └── animations.css             # keyframes, stagger, FLIP flashes, glitch-out, reduced-motion
+│
+├── js/
+│   ├── main.js                    # bootstrap: render cycle, timer loop, shortcuts, filters, background
+│   ├── actions.js                 # every data-action handler (single mutation surface)
+│   ├── motion.js                  # FLIP, count-up, ghost removal, glitch flash
+│   ├── icons.js                   # inline SVG icon set
+│   ├── background-scene.js        # Three.js scene (source for the vendor bundle)
+│   ├── store/
+│   │   ├── index.js               # observable store + localStorage persistence
+│   │   ├── reducer.js             # pure reducer, House rules, audit log
+│   │   ├── selectors.js           # derived data (leaderboard, danger zone, stats…)
+│   │   └── seed.js                # demo season (12 contestants, 3 tasks, 1 broadcast)
+│   ├── ui/
+│   │   ├── modal.js               # focus-trapped dialog + confirm helper
+│   │   ├── toast.js               # success / error / blocked notifications
+│   │   ├── banner.js              # cinematic Big Boss takeover (typewriter + progress)
+│   │   └── menu.js                # one-at-a-time action menus
+│   ├── components/                # Avatar · Badge · StatCard · Leaderboard · ContestantCard
+│   │                              # TaskPanel · TimerRing · DangerZone · ActivityFeed
+│   │                              # AnnouncementList · Header · Sidebar · HouseStats · ModalForms
+│   └── views/                     # Dashboard · Contestants · Tasks · Nominations · Leaderboard
+│                                  # Announcements · Evictions · Activity · Settings
+│
+├── vendor/
+│   ├── background.bundle.js       # generated: npm run build:vendor
+│   └── fonts/                     # self-hosted Orbitron + Inter (woff2)
+│
+├── test/smoke.mjs                 # 28 headless feature checks
+└── docs/dashboard-layout.svg      # hand-drawn layout schematic
 ```
 
-## 🔌 Production notes
+## 3. Screenshots
 
-- `server.cjs` serves on `0.0.0.0`, gzips compressible assets, sets `ETag`/`Cache-Control`, blocks path traversal and falls back to `index.html` for unknown routes.
-- The app is a fully static bundle, so it also deploys to any CDN/host with no server-side requirements.
-- Accessibility: semantic landmarks, `aria-live` regions for announcements and toasts, visible focus rings, and `prefers-reduced-motion` support.
+`docs/dashboard-layout.svg` is a **hand-drawn layout schematic** (not a screenshot) of the dashboard bento grid.
 
-## 👥 Team
+To capture real screenshots for a submission, run the app and save PNGs into `docs/screenshots/`:
+
+| Suggested file | View | What to capture |
+|---|---|---|
+| `01-dashboard.png` | Dashboard | Stats row + leaderboard + timer + Danger Zone |
+| `02-contestants.png` | Contestants | Filter bar, roster grid, action menu open |
+| `03-tasks.png` | Tasks | Task timer running, task board with a completion |
+| `04-nominations.png` | Nominations | Danger Zone alarm card + immunity panel |
+| `05-announcement.png` | Any | The cinematic Big Boss banner mid-typewriter |
+| `06-eviction.png` | Evictions | Eviction record with a reinstated contestant |
+
+## 4. Feature checklist — the 12 mandatory features
+
+| # | Feature | Where | How to verify |
+|---|---|---|---|
+| 1 | **Contestant management** (8+ with name, team, points, status) | Contestants view | 12 seeded contestants; add/edit/delete; search + team + status filters; roster table |
+| 2 | **Live leaderboard** | Leaderboard view + dashboard | Instant re-ranking with FLIP animation, medals for the top 3, FLIP keys on every row |
+| 3 | **Task management** | Tasks view | Assign multi-contestant tasks, pending → in progress → completed / failed, reopen, delete |
+| 4 | **Point system** | Everywhere | ±10 quick buttons, +5/+25 stepper on cards, custom modal with reason, clamped at 0, full audit log |
+| 5 | **Captaincy** | Nominations view · card menu | Appoint / transfer / revoke — exactly one Captain at a time (enforced in the reducer) |
+| 6 | **Nominations** | Nominations view | Multi-select with reason, rounds; duplicates and self-votes rejected |
+| 7 | **Immunity** | Nominations view · card menu | Immune contestants show a blocked *"Immunity active — nomination denied"* toast; existing nominations auto-revoke |
+| 8 | **Danger Zone** | Nominations view + dashboard | Crimson alarm card with pulsing border, all nominees listed, sidebar badge, withdraw/evict actions |
+| 9 | **Big Boss announcements** | Announcements view + header | Cinematic full-screen banner (pulsing eye, typewriter, progress bar, auto-dismiss), archive + replay |
+| 10 | **Task timer** | Tasks view + dashboard | Circular ring: start / pause / reset, presets, custom duration + label, amber < 30 s, pulsing crimson < 10 s, TIME-UP broadcast |
+| 11 | **House statistics** | Dashboard + Contestants | Highest scorer, most tasks, captain, leading team, completion rate, nominees, immunity, evictions, house points |
+| 12 | **Eviction** | Evictions view · Danger Zone | Confirmation modal, immunity override warning, glitch removal, leaves the leaderboard, releases tasks, can be reinstated |
+
+Extra: **Activity Log** (filterable audit trail), **Settings** (house config, backups, reset demo data, appearance).
+
+## 5. Manual QA checklist
+
+Run `npm start`, open http://localhost:5173 and walk through this list. Every step must leave the UI consistent
+after a page refresh (state persists in `localStorage` under the `bb-command-centre.v1` key).
+
+**1 · Contestants**
+- [ ] Dashboard → Contestants: 12 cards with avatar, team chip, points and status badge (Captain on Devansh).
+- [ ] Search "zara" narrows the grid; clearing restores it.
+- [ ] Status filter *Nominated / Immune / Evicted / All* changes the grid; team filter narrows by team.
+- [ ] **Add contestant** → name + team → appears instantly; adding the same name again is rejected with a toast.
+
+**2 · Leaderboard**
+- [ ] Leaderboard view lists all active contestants sorted by points, with gold/silver/bronze medals.
+- [ ] On any row press **+10** ten times: the row climbs, flashes green, and the number counts up.
+- [ ] Press **−10**: the row slides down, flashes red, and the ×10 delta badge floats above the score.
+
+**3 · Tasks**
+- [ ] **Assign task** → preset "Coding Sprint", pick 2 contestants → appears on the Task Board as *Pending*.
+- [ ] **Start** → *In Progress*; **Mark complete** → *Completed* badge, both assignees gain the task points and +1 task count.
+- [ ] **Reopen** → *In Progress* (points are not refunded); **Failed** marks it red; the trash icon deletes after confirmation.
+
+**4 · Points**
+- [ ] Card ⋯ → *Adjust points* → −5 with a reason → score drops; the reason appears in the Activity Log.
+- [ ] Try to drive a score below zero: it clamps to 0.
+
+**5 · Captaincy**
+- [ ] Nominations → *Change* → pick someone else → sidebar captain chip and the crown badge move; only one Captain exists.
+- [ ] Dashboard stat "Current Captain" updates; **Revoke** makes it *Vacant*.
+
+**6 · Nominations**
+- [ ] Nominations → select two contestants + reason → **Nominate selected** → both appear in the Danger Zone with the round number.
+- [ ] Try to nominate the same person again: they are no longer offered, and the card menu item is disabled.
+
+**7 · Immunity**
+- [ ] Card ⋯ → *Grant immunity* → green shield badge + banner *"…won immunity. The House cannot touch them."*
+- [ ] The card shows a green **Nominate** button: click it → toast **"Immunity active — nomination denied"** and the contestant stays out of the Danger Zone.
+- [ ] Grant immunity to someone already nominated → their nomination is revoked automatically.
+
+**8 · Danger Zone**
+- [ ] The Danger Zone card on the dashboard turns crimson with a pulsing border and lists every nominee.
+- [ ] The sidebar badge counts them; **Withdraw** removes one and updates the count immediately.
+
+**9 · Announcements**
+- [ ] Header **Make Announcement** → pick the *alert* preset → **Broadcast** → full-screen banner with a pulsing eye, typewriter text and a progress bar; it auto-dismisses, or Esc / ✕ closes it.
+- [ ] The message is stored in the archive and **Replay** re-shows it.
+
+**10 · Task timer**
+- [ ] Tasks → **03:00** preset → *Start* → the ring animates and the top-bar chip shows *Running*.
+- [ ] Set 00:20 (Custom) and start: the ring turns **amber** under 30 s and **pulsing crimson** under 10 s.
+- [ ] At zero the app broadcasts *TIME IS UP*, the log records it, and the ring shows *Time up*.
+- [ ] **Pause** freezes the clock, **Reset** restores the duration. Reload mid-run: the countdown resumes correctly (timestamp-based).
+
+**11 · Statistics**
+- [ ] Dashboard shows six animated cards: Total Active, Highest Scorer, Current Captain, Tasks Completed (x/y), Nominees, Evicted.
+- [ ] Contestants → House Statistics lists highest scorer, most tasks, captain, leading team, completion rate, immune/nominee/evicted counts, and every value matches the data.
+
+**12 · Eviction**
+- [ ] Danger Zone → **Evict** → confirmation modal → the screen glitches, the banner announces the eviction.
+- [ ] The contestant disappears from the leaderboard and from task assignees; the active counter drops by one.
+- [ ] Evictions view lists them with their final score; **Reinstate** returns them to the House and the leaderboard.
+- [ ] Try to evict an immune contestant: the modal first warns **"Override immunity…"** and the override is written into the log.
+- [ ] **Evict the Danger Zone** removes the whole round in one confirmed action.
+
+**System**
+- [ ] Refresh the page: every change is still there (localStorage).
+- [ ] Settings → **Reset demo data** restores the 12-contestant season; **Empty the House** clears it.
+- [ ] Settings → toggle the 3D background; enable *prefers-reduced-motion* in your OS and confirm motion stops (static gradient).
+- [ ] Keyboard: `1…9` switch sections, `B` collapses the sidebar, `N` opens the announcement composer, `T` toggles the timer, `Esc` closes overlays, `Tab` walks every control with a visible focus ring.
+
+## 6. Production notes
+
+- **Performance** — no framework, no runtime fetches beyond the vendor bundle and fonts; DPR ≤ 2; the 3D loop pauses on hidden tabs; timers never trigger a full re-render (only the clocks/rings are patched).
+- **Accessibility** — semantic landmarks, `aria-live` toasts, `role="alertdialog"` banner, focus trapping in modals, visible focus rings, skip link, AA-contrast palette, colour never used alone.
+- **Security** — all user text is escaped before it reaches the DOM; the server blocks path traversal and sets `X-Content-Type-Options: nosniff`.
+- **Deploy** — static output: `node server.cjs` (any port via `PORT`), or drop the folder on any static host/CDN.
+
+## 7. Team
 
 Built by **Spartans** for the Tech House. Big Boss is watching. 🫡
