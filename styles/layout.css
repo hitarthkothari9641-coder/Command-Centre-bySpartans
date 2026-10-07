@@ -484,3 +484,43 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ── Role chip + notification bell on small screens ─────────────────────── */
+@media (max-width: 900px) {
+  /* Keep the bell and the role chip (they are controls, not decoration), and
+     drop the read-only status chips the top bar can no longer afford. */
+  .topbar__actions .chip--live,
+  .topbar__actions .chip--clock {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .chip--role .chip__text,
+  .chip--role .chip__caret {
+    display: none;
+  }
+  .chip--role {
+    padding: 6px;
+  }
+  .access-bar {
+    align-items: flex-start;
+    gap: var(--s-2);
+    font-size: var(--fs-xs);
+  }
+  .access-bar .btn {
+    display: none;
+  }
+  .live-strip {
+    flex-wrap: wrap;
+    gap: var(--s-2);
+  }
+  .live-strip .spacer {
+    display: none;
+  }
+  .kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .analytics-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
