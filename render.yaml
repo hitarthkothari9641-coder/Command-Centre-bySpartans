@@ -30,7 +30,6 @@ services:
         value: 22.22.0
       - key: HOST
         value: 0.0.0.0
-      # PORT is injected by Render — server.cjs reads process.env.PORT.
+      # PORT and RENDER are injected automatically by Render — server.cjs reads
+      # both (RENDER_EXTERNAL_URL is used for the "listening on" log line).
       # No secrets are required: all House state lives in the browser.
-      - key: RENDER
-        sync: false # set to "true" in the dashboard if you want the env flagged as Render
