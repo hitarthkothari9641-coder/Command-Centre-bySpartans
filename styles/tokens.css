@@ -1,0 +1,172 @@
+/* ============================================================================
+   BIG BOSS · COMMAND CENTER — Design tokens
+   Concept: surveillance control room meets cyber-tech reality show.
+   ========================================================================= */
+
+/* ── Self-hosted type (no third-party requests, works offline) ─────────── */
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../vendor/fonts/orbitron-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../vendor/fonts/orbitron-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Orbitron';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('../vendor/fonts/orbitron-latin-800-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../vendor/fonts/inter-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../vendor/fonts/inter-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../vendor/fonts/inter-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../vendor/fonts/inter-latin-700-normal.woff2') format('woff2');
+}
+
+:root {
+  /* ── Surfaces ───────────────────────────────────────────────────────── */
+  --bg-0: #05070d;
+  --bg-1: #080b16;
+  --bg-2: #0b1020;
+  --surface: rgba(14, 19, 36, 0.62);
+  --surface-2: rgba(19, 25, 46, 0.72);
+  --surface-3: rgba(26, 33, 58, 0.78);
+  --surface-solid: #0d1222;
+  --border: rgba(148, 180, 255, 0.12);
+  --border-strong: rgba(148, 180, 255, 0.24);
+  --hairline: rgba(255, 255, 255, 0.06);
+
+  /* ── Text ───────────────────────────────────────────────────────────── */
+  --text: #e8eefc;
+  --text-2: #a3b0cc;
+  --text-3: #6f7b99;
+  --text-inverse: #05070d;
+
+  /* ── Accents ────────────────────────────────────────────────────────── */
+  --cyan: #22d3ee;
+  --cyan-dim: #0e7490;
+  --cyan-soft: rgba(34, 211, 238, 0.12);
+  --violet: #8b5cf6;
+  --violet-soft: rgba(139, 92, 246, 0.14);
+  --crimson: #ef4444;
+  --crimson-soft: rgba(239, 68, 68, 0.13);
+  --amber: #f59e0b;
+  --amber-soft: rgba(245, 158, 11, 0.13);
+  --emerald: #10b981;
+  --emerald-soft: rgba(16, 185, 129, 0.13);
+  --gold: #facc15;
+  --gold-soft: rgba(250, 204, 21, 0.13);
+
+  --accent: var(--cyan);
+  --accent-2: var(--violet);
+
+  /* ── Glow / elevation ───────────────────────────────────────────────── */
+  --glow-cyan: 0 0 0 1px rgba(34, 211, 238, 0.28), 0 12px 40px -18px rgba(34, 211, 238, 0.55);
+  --glow-violet: 0 0 0 1px rgba(139, 92, 246, 0.3), 0 12px 40px -18px rgba(139, 92, 246, 0.55);
+  --glow-crimson: 0 0 0 1px rgba(239, 68, 68, 0.34), 0 12px 40px -18px rgba(239, 68, 68, 0.6);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow: 0 18px 50px -28px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 40px 120px -40px rgba(0, 0, 0, 0.95), 0 4px 14px rgba(0, 0, 0, 0.55);
+  --inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 0 60px -40px rgba(34, 211, 238, 0.5);
+
+  /* ── Geometry (8px grid, 14–16px radius) ────────────────────────────── */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 40px;
+  --r-sm: 10px;
+  --r: 14px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-pill: 999px;
+
+  /* ── Type ───────────────────────────────────────────────────────────── */
+  --font-display: 'Orbitron', 'Rajdhani', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-micro: 10.5px;
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-base: 13.5px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 28px;
+  --fs-3xl: 34px;
+  --ls-wide: 0.12em;
+
+  /* ── Motion ─────────────────────────────────────────────────────────── */
+  --ease: cubic-bezier(0.22, 0.72, 0.3, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 130ms;
+  --t: 220ms;
+  --t-slow: 420ms;
+
+  /* ── Chrome ─────────────────────────────────────────────────────────── */
+  --sidebar-w: 250px;
+  --sidebar-w-collapsed: 76px;
+  --topbar-h: 66px;
+  --tabbar-h: 62px;
+  --z-bg: 0;
+  --z-app: 1;
+  --z-sticky: 40;
+  --z-modal: 200;
+  --z-banner: 300;
+  --z-toast: 400;
+}
+
+/* Team identity colours */
+:root {
+  --team-alpha: #22d3ee;
+  --team-bravo: #8b5cf6;
+  --team-charlie: #f59e0b;
+  --team-delta: #10b981;
+}
+[data-team='Alpha'] { --team: var(--team-alpha); }
+[data-team='Bravo'] { --team: var(--team-bravo); }
+[data-team='Charlie'] { --team: var(--team-charlie); }
+[data-team='Delta'] { --team: var(--team-delta); }
+[data-team='Echo'] { --team: var(--cyan); }
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-fast: 0ms;
+    --t: 0ms;
+    --t-slow: 0ms;
+  }
+}

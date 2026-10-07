@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 880" width="1240" height="880" font-family="Inter, system-ui, sans-serif" role="img" aria-label="Dashboard layout schematic">
+  <title>Command Center dashboard — layout schematic</title>
+  <desc>Hand-drawn wireframe of the dashboard bento grid: top bar, collapsible sidebar, six stat cards, live leaderboard, task timer, active task, Danger Zone and the Big Boss broadcast panel.</desc>
+
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1020" />
+      <stop offset="1" stop-color="#05070d" />
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#131a2e" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#0d1222" stop-opacity="0.9" />
+    </linearGradient>
+    <radialGradient id="glow" cx="0.62" cy="-0.1" r="0.6">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.22" />
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0" />
+    </radialGradient>
+    <style>
+      .panel { fill: url(#glass); stroke: #26304a; stroke-width: 1; rx: 16; }
+      .label { fill: #a3b0cc; font-size: 13px; }
+      .eyebrow { fill: #6f7b99; font-size: 10.5px; letter-spacing: 1.6px; text-transform: uppercase; }
+      .title { fill: #e8eefc; font-size: 15px; font-weight: 600; }
+      .big { fill: #e8eefc; font-size: 26px; font-weight: 700; }
+      .accent { fill: #22d3ee; }
+      .gold { fill: #facc15; }
+      .danger { fill: #ef4444; }
+      .emerald { fill: #10b981; }
+      .violet { fill: #8b5cf6; }
+    </style>
+  </defs>
+
+  <rect width="1240" height="880" fill="url(#room)" />
+  <rect width="1240" height="420" fill="url(#glow)" />
+
+  <!-- grid floor hint -->
+  <g stroke="#22d3ee" stroke-opacity="0.07">
+    <path d="M0 812h1240M0 762h1240M0 722h1240M0 692h1240" />
+  </g>
+
+  <!-- sidebar -->
+  <rect x="0" y="0" width="228" height="880" fill="#080b16" stroke="#1b2338" />
+  <rect x="20" y="22" width="34" height="34" rx="11" fill="#0f2233" stroke="#22d3ee" stroke-opacity="0.5" />
+  <circle cx="37" cy="39" r="7" fill="none" stroke="#22d3ee" stroke-width="1.6" />
+  <circle cx="37" cy="39" r="2.6" fill="#22d3ee" />
+  <text x="64" y="38" class="title" font-size="13" letter-spacing="2">BIG BOSS</text>
+  <text x="64" y="52" class="eyebrow" font-size="9.5">COMMAND CENTER</text>
+
+  <text x="20" y="96" class="eyebrow">Control room</text>
+  <g>
+    <rect x="14" y="106" width="200" height="34" rx="10" fill="#22d3ee" fill-opacity="0.14" stroke="#22d3ee" stroke-opacity="0.35" />
+    <rect x="14" y="106" width="3" height="34" rx="2" fill="#22d3ee" />
+    <text x="34" y="128" fill="#22d3ee" font-size="13">Dashboard</text>
+  </g>
+  <g class="label">
+    <text x="34" y="168">Contestants</text><text x="188" y="168" fill="#22d3ee" font-size="11">12</text>
+    <text x="34" y="202">Tasks</text><text x="192" y="202" fill="#22d3ee" font-size="11">2</text>
+    <text x="34" y="236">Nominations</text><text x="192" y="236" fill="#6f7b99" font-size="11">0</text>
+    <text x="34" y="270">Leaderboard</text>
+    <text x="34" y="304">Announcements</text>
+  </g>
+  <text x="20" y="346" class="eyebrow">House record</text>
+  <g class="label">
+    <text x="34" y="378">Evictions</text><text x="192" y="378" fill="#6f7b99" font-size="11">0</text>
+    <text x="34" y="412">Activity Log</text>
+    <text x="34" y="446">Settings</text>
+  </g>
+  <rect x="14" y="762" width="200" height="52" rx="14" fill="#facc15" fill-opacity="0.08" stroke="#facc15" stroke-opacity="0.3" />
+  <text x="30" y="784" class="eyebrow" font-size="9">HOUSE CAPTAIN</text>
+  <text x="30" y="802" class="gold" font-size="13">Devansh Gupta</text>
+
+  <!-- top bar -->
+  <rect x="228" y="0" width="1012" height="66" fill="#070b16" stroke="#1b2338" />
+  <text x="256" y="30" class="title">Command Center</text>
+  <text x="256" y="48" class="eyebrow" font-size="10">LIVE HOUSE OVERVIEW · TECH HOUSE · SEASON 1 · DAY 1</text>
+  <g>
+    <rect x="792" y="20" width="78" height="26" rx="13" fill="#10b981" fill-opacity="0.12" stroke="#10b981" stroke-opacity="0.4" />
+    <circle cx="808" cy="33" r="3.5" fill="#10b981" />
+    <text x="818" y="37" fill="#6ee7b7" font-size="11" letter-spacing="1">LIVE</text>
+    <rect x="880" y="20" width="104" height="26" rx="13" fill="#0d1222" stroke="#26304a" />
+    <text x="892" y="37" class="label" font-size="11">Zone clear</text>
+    <rect x="994" y="20" width="104" height="26" rx="13" fill="#0d1222" stroke="#26304a" />
+    <text x="1006" y="37" class="label" font-size="11">04:35:12</text>
+    <rect x="1108" y="16" width="118" height="34" rx="10" fill="#22d3ee" />
+    <text x="1130" y="38" fill="#04121a" font-size="12" font-weight="600">Announce</text>
+  </g>
+
+  <!-- stat row -->
+  <g>
+    <rect class="panel" x="252" y="90" width="152" height="98" />
+    <text x="270" y="118" class="eyebrow">TOTAL ACTIVE</text>
+    <text x="270" y="152" class="big">12</text>
+    <text x="270" y="172" class="eyebrow" font-size="9">12 TOTAL · 0 EVICTED</text>
+
+    <rect class="panel" x="416" y="90" width="152" height="98" stroke="#facc15" stroke-opacity="0.35" />
+    <text x="434" y="118" class="eyebrow">HIGHEST SCORER</text>
+    <text x="434" y="152" class="big gold">180</text>
+    <text x="434" y="172" class="eyebrow" font-size="9">AARAV MEHTA</text>
+
+    <rect class="panel" x="580" y="90" width="152" height="98" />
+    <text x="598" y="118" class="eyebrow">CAPTAIN</text>
+    <text x="598" y="150" class="title" font-size="14">Devansh</text>
+    <text x="598" y="172" class="eyebrow" font-size="9">TEAM CHARLIE</text>
+
+    <rect class="panel" x="744" y="90" width="152" height="98" />
+    <text x="762" y="118" class="eyebrow">TASKS DONE</text>
+    <text x="762" y="152" class="big emerald">1</text>
+    <text x="762" y="172" class="eyebrow" font-size="9">1 OF 3 · 33%</text>
+
+    <rect class="panel" x="908" y="90" width="152" height="98" />
+    <text x="926" y="118" class="eyebrow">NOMINEES</text>
+    <text x="926" y="152" class="big danger">0</text>
+    <text x="926" y="172" class="eyebrow" font-size="9">NOBODY AT RISK</text>
+
+    <rect class="panel" x="1072" y="90" width="154" height="98" />
+    <text x="1090" y="118" class="eyebrow">EVICTED</text>
+    <text x="1090" y="152" class="big violet">0</text>
+    <text x="1090" y="172" class="eyebrow" font-size="9">0 IMMUNE · 1595 PTS</text>
+  </g>
+
+  <!-- leaderboard -->
+  <rect class="panel" x="252" y="204" width="470" height="330" />
+  <text x="272" y="234" class="title">LIVE LEADERBOARD</text>
+  <text x="470" y="234" class="eyebrow" font-size="9.5">TOP 6 OF 12</text>
+  <text x="660" y="234" class="accent" font-size="11">FULL BOARD →</text>
+  <line x1="252" y1="248" x2="722" y2="248" stroke="#1e2739" />
+  <g>
+    <rect x="272" y="262" width="30" height="30" rx="10" fill="#facc15" />
+    <text x="280" y="283" fill="#1a1403" font-size="13" font-weight="700">1</text>
+    <circle cx="322" cy="277" r="15" fill="#22d3ee" fill-opacity="0.75" />
+    <text x="350" y="274" class="title" font-size="13">Aarav Mehta</text>
+    <text x="350" y="290" class="eyebrow" font-size="9">TEAM ALPHA · 1 TASK DONE</text>
+    <text x="690" y="282" class="title" font-size="16" text-anchor="end">180</text>
+    <rect x="350" y="298" width="330" height="3" rx="2" fill="#1e2739" />
+    <rect x="350" y="298" width="330" height="3" rx="2" fill="#22d3ee" />
+  </g>
+  <line x1="252" y1="316" x2="722" y2="316" stroke="#161d2c" />
+  <g>
+    <rect x="272" y="330" width="30" height="30" rx="10" fill="#cbd5e1" />
+    <text x="280" y="351" fill="#14181f" font-size="13" font-weight="700">2</text>
+    <circle cx="322" cy="345" r="15" fill="#8b5cf6" fill-opacity="0.75" />
+    <text x="350" y="342" class="title" font-size="13">Devansh Gupta</text>
+    <text x="350" y="358" class="eyebrow" font-size="9">CAPTAIN · TEAM CHARLIE</text>
+    <text x="690" y="350" class="title" font-size="16" text-anchor="end">170</text>
+    <rect x="350" y="366" width="330" height="3" rx="2" fill="#1e2739" />
+    <rect x="350" y="366" width="312" height="3" rx="2" fill="#22d3ee" />
+  </g>
+  <line x1="252" y1="384" x2="722" y2="384" stroke="#161d2c" />
+  <g>
+    <rect x="272" y="398" width="30" height="30" rx="10" fill="#d97706" fill-opacity="0.8" />
+    <text x="280" y="419" fill="#1a0f03" font-size="13" font-weight="700">3</text>
+    <circle cx="322" cy="413" r="15" fill="#f59e0b" fill-opacity="0.75" />
+    <text x="350" y="410" class="title" font-size="13">Zara Khan</text>
+    <text x="350" y="426" class="eyebrow" font-size="9">TEAM ALPHA · 0 TASKS DONE</text>
+    <text x="690" y="418" class="title" font-size="16" text-anchor="end">165</text>
+    <rect x="350" y="434" width="330" height="3" rx="2" fill="#1e2739" />
+    <rect x="350" y="434" width="302" height="3" rx="2" fill="#22d3ee" />
+  </g>
+
+  <!-- timer -->
+  <rect class="panel" x="738" y="204" width="488" height="330" />
+  <text x="758" y="234" class="title">TASK TIMER</text>
+  <text x="1108" y="234" class="eyebrow" font-size="9.5">CODING SPRINT</text>
+  <circle cx="982" cy="368" r="82" fill="none" stroke="#1e2739" stroke-width="8" />
+  <circle cx="982" cy="368" r="82" fill="none" stroke="#22d3ee" stroke-width="8" stroke-linecap="round"
+          stroke-dasharray="515" stroke-dashoffset="150" transform="rotate(-90 982 368)" />
+  <text x="982" y="372" class="big" font-size="34" text-anchor="middle" font-family="ui-monospace, monospace">07:12</text>
+  <text x="982" y="394" class="eyebrow" text-anchor="middle">RUNNING</text>
+  <rect x="868" y="470" width="106" height="34" rx="10" fill="#22d3ee" />
+  <text x="902" y="492" fill="#04121a" font-size="12" font-weight="600">Pause</text>
+  <rect x="986" y="470" width="106" height="34" rx="10" fill="#0d1222" stroke="#26304a" />
+  <text x="1018" y="492" class="label" font-size="12">Reset</text>
+
+  <!-- danger zone -->
+  <rect class="panel" x="738" y="550" width="488" height="150" stroke="#ef4444" stroke-opacity="0.45" />
+  <text x="758" y="580" class="title">DANGER ZONE</text>
+  <text x="1180" y="580" class="eyebrow" font-size="9.5" text-anchor="end">ROUND 1</text>
+  <circle cx="776" cy="612" r="14" fill="#ef4444" fill-opacity="0.7" />
+  <text x="804" y="610" class="title" font-size="13">Meera Nair</text>
+  <text x="804" y="626" class="eyebrow" font-size="9">TEAM CHARLIE · 145 PTS · FAILED THE TASK</text>
+  <rect x="1088" y="600" width="118" height="30" rx="9" fill="#ef4444" fill-opacity="0.16" stroke="#ef4444" stroke-opacity="0.45" />
+  <text x="1112" y="620" fill="#fca5a5" font-size="12">Evict</text>
+  <line x1="758" y1="644" x2="1208" y2="644" stroke="#1e2739" />
+  <text x="758" y="672" class="eyebrow" font-size="9.5">IMMUNE THIS ROUND</text>
+  <text x="900" y="672" class="emerald" font-size="11">Isha Verma · Tara Bose</text>
+
+  <!-- activity feed -->
+  <rect class="panel" x="252" y="550" width="470" height="150" />
+  <text x="272" y="580" class="title">HOUSE ACTIVITY</text>
+  <text x="690" y="580" class="eyebrow" font-size="9.5" text-anchor="end">LIVE EVENT LOG</text>
+  <g class="label" font-size="12">
+    <circle cx="280" cy="608" r="4" fill="#facc15" /><text x="296" y="612">Aarav Mehta +20 pts → 180 pts</text>
+    <text x="690" y="612" class="eyebrow" font-size="9" text-anchor="end">19:42</text>
+    <circle cx="280" cy="634" r="4" fill="#ef4444" /><text x="296" y="638">Meera Nair nominated for eviction</text>
+    <text x="690" y="638" class="eyebrow" font-size="9" text-anchor="end">19:38</text>
+    <circle cx="280" cy="660" r="4" fill="#10b981" /><text x="296" y="664">Isha Verma won immunity</text>
+    <text x="690" y="664" class="eyebrow" font-size="9" text-anchor="end">19:30</text>
+    <circle cx="280" cy="686" r="4" fill="#22d3ee" /><text x="296" y="690">Task “Debug the Arena API” in progress</text>
+    <text x="690" y="690" class="eyebrow" font-size="9" text-anchor="end">19:21</text>
+  </g>
+
+  <!-- footer -->
+  <line x1="252" y1="742" x2="1226" y2="742" stroke="#1b2338" />
+  <circle cx="262" cy="766" r="3.5" fill="#10b981" />
+  <text x="276" y="770" class="eyebrow" font-size="9.5">SURVEILLANCE LIVE · TECH HOUSE FEED ENCRYPTED</text>
+  <text x="1226" y="770" class="eyebrow" font-size="9.5" text-anchor="end">BIG BOSS COMMAND CENTER v2.0 · BIG BOSS IS WATCHING.</text>
+
+  <text x="620" y="844" class="eyebrow" text-anchor="middle" font-size="10">
+    LAYOUT SCHEMATIC — HAND-DRAWN WIREFRAME OF THE DASHBOARD BENTO GRID (NOT A SCREENSHOT)
+  </text>
+</svg>

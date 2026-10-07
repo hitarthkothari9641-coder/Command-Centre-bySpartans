@@ -1,0 +1,35 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Render Blueprint — SPARTANS X TECH BOSS · Big Boss Command Center
+#
+# Deploy: Render Dashboard → New → Blueprint → pick this repo → Apply.
+# Render reads this file and provisions everything below automatically.
+#
+# Why a Web Service (and not a Static Site)?
+#   • /healthz liveness endpoint + smart SPA fallback (asset 404s never return HTML),
+#   • correct MIME type for site.webmanifest,
+#   • long-lived caching + gzip for the vendor bundle and fonts,
+#   • room to grow (API routes, real-time channels) without changing hosts.
+#   A Static Site would also work — see docs/DEPLOY.md for that path.
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  - type: web
+    name: bigboss-command-center
+    runtime: node
+    plan: free # bump to "starter" for always-on (no cold starts)
+    region: singapore # closest to India; swap for oregon / frankfurt / ohio
+    branch: main # point at your default branch
+    autoDeploy: true
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.cjs
+    healthCheckPath: /healthz
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: HOST
+        value: 0.0.0.0
+      # PORT and RENDER are injected automatically by Render — server.cjs reads
+      # both (RENDER_EXTERNAL_URL is used for the "listening on" log line).
+      # No secrets are required: all House state lives in the browser.

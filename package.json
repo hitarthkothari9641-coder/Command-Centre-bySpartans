@@ -1,0 +1,36 @@
+{
+  "name": "command-centre-by-spartans",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Big Boss \u00b7 Command Center \u2014 a surveillance-style control room for the Tech House: contestants, leaderboard, tasks, points, captaincy, nominations, immunity, Danger Zone, announcements, timer, statistics and evictions.",
+  "keywords": [
+    "bigboss",
+    "command-center",
+    "control-room",
+    "threejs",
+    "vanilla-js",
+    "dashboard",
+    "reality-show"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.cjs",
+    "dev": "node server.cjs",
+    "test": "node test/smoke.mjs",
+    "build:vendor": "esbuild js/background-scene.js --bundle --format=esm --minify --outfile=vendor/background.bundle.js",
+    "check": "node --check server.cjs && for f in js/*.js js/**/*.js; do node --check \"$f\" || exit 1; done && echo \"syntax OK\"",
+    "brand:logo": "node scripts/sync-logo.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "main": "server.cjs",
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.1.2"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  }
+}

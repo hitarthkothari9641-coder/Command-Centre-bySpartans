@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Big Boss · Command Center — Tech House</title>
+  <meta name="description" content="Big Boss Command Center — a surveillance-style control room for the Tech House: contestants, leaderboard, tasks, points, captaincy, nominations, immunity, the Danger Zone, announcements, timer, statistics and evictions." />
+  <meta name="theme-color" content="#05070d" />
+  <meta name="color-scheme" content="dark" />
+
+  <meta name="application-name" content="Tech Boss Command Center" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Tech Boss" />
+
+  <meta property="og:title" content="SPARTANS X TECH BOSS — Big Boss · Command Center" />
+  <meta property="og:description" content="Mission-control dashboard for the Tech House reality show. Big Boss is watching." />
+  <meta property="og:url" content="https://command-centre-byspartans.onrender.com/" />
+  <link rel="canonical" href="https://command-centre-byspartans.onrender.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Big Boss · Command Center" />
+  <meta property="og:image" content="assets/icons/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="SPARTANS X TECH BOSS logo — red Spartan and cyber eye with gold wordmark" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SPARTANS X TECH BOSS — Big Boss · Command Center" />
+  <meta name="twitter:description" content="Surveillance control room for the Tech House: leaderboard, tasks, nominations, immunity and evictions." />
+  <meta name="twitter:image" content="assets/icons/og-image.jpg" />
+
+  <!-- ── Icons: .ico for legacy/default requests, PNG for modern browsers ── -->
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="48x48" href="assets/icons/favicon-48.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/icon-192.png" />
+  <link rel="mask-icon" href="assets/brand/logo-mark.png" color="#facc15" />
+  <link rel="manifest" href="site.webmanifest" />
+
+  <!-- Brand art is above the fold: fetch it with the app shell -->
+  <link rel="preload" as="image" href="assets/brand/logo-mark.png" />
+  <link rel="preload" as="image" href="assets/brand/logo-wide.jpg" />
+
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/animations.css" />
+  <link rel="stylesheet" href="styles/layout.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+</head>
+
+<body data-bg="on">
+  <a class="skip-link" href="#viewHost">Skip to House control</a>
+
+  <!-- ── Boot splash (removed by JS once the control room is live) ───── -->
+  <div class="splash" id="splash" role="status" aria-label="Booting the Command Center">
+    <div class="splash__inner">
+      <img class="splash__logo" src="assets/brand/logo-wide.jpg"
+        srcset="assets/brand/logo-wide.jpg 720w, assets/brand/logo-hero.jpg 1280w"
+        sizes="(max-width: 700px) 88vw, 520px"
+        width="720" height="480" fetchpriority="high" decoding="async"
+        alt="Spartans X Tech Boss" />
+      <div class="splash__meta">
+        <span class="chip chip--live"><i class="live-dot"></i> Establishing House feed</span>
+      </div>
+      <div class="splash__bar"><i></i></div>
+    </div>
+  </div>
+
+  <!-- ── Background visual stack ────────────────────────────────────── -->
+  <canvas id="bgCanvas" class="bg-canvas" aria-hidden="true"></canvas>
+  <div class="bg-layer bg-glow" aria-hidden="true"></div>
+  <div class="bg-layer bg-scanlines" aria-hidden="true"></div>
+  <div class="bg-layer bg-noise" aria-hidden="true"></div>
+  <div class="bg-layer bg-sweep" aria-hidden="true"></div>
+  <div class="bg-layer bg-vignette" aria-hidden="true"></div>
+
+  <!-- ── App shell ──────────────────────────────────────────────────── -->
+  <div class="app" id="app" data-sidebar="expanded">
+    <aside class="sidebar" id="sidebar" aria-label="Command Center navigation"></aside>
+
+    <main class="main" id="main">
+      <div id="header"></div>
+      <div id="accessBar"></div>
+
+      <div class="view-host" id="viewHost">
+        <!-- First-paint skeleton (replaced on boot, prevents layout shift) -->
+        <section class="view is-active">
+          <div class="skeleton-grid">
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+            <div class="skeleton skeleton--stat"></div>
+          </div>
+          <div class="skeleton-grid skeleton-grid--stack">
+            <div class="skeleton skeleton--row"></div>
+            <div class="skeleton skeleton--row"></div>
+            <div class="skeleton skeleton--row"></div>
+            <div class="skeleton skeleton--row"></div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="app-footer">
+        <span class="row-8">
+          <i class="live-dot"></i>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--text-3)">
+            <path d="M5 12.5a10 10 0 0 1 14 0" /><path d="M8.5 16a5.5 5.5 0 0 1 7 0" />
+            <circle cx="12" cy="19.5" r="1" />
+          </svg>
+          <span class="fs-xs muted">Surveillance live · Tech House feed encrypted</span>
+        </span>
+        <span class="spacer"></span>
+        <span class="fs-xs muted">Big Boss Command Center v2.0 · Big Boss is watching.</span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ── Overlays ───────────────────────────────────────────────────── -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal__card glass">
+      <button class="modal__close" id="modalClose" type="button" aria-label="Close dialog">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" /></svg>
+      </button>
+      <div class="modal__head">
+        <h2 class="modal__title" id="modalTitle">Title</h2>
+        <p class="modal__desc" id="modalDesc"></p>
+      </div>
+      <div class="modal__body" id="modalBody"></div>
+      <div class="modal__foot" id="modalFoot"></div>
+    </div>
+  </div>
+
+  <div class="banner" id="banner" role="alertdialog" aria-modal="true" aria-labelledby="bannerText" aria-hidden="true">
+    <span class="banner__scan" aria-hidden="true"></span>
+    <div class="banner__card" id="bannerCard" data-tone="accent">
+      <button class="btn btn--icon btn--ghost banner__close" id="bannerClose" type="button" aria-label="Dismiss announcement">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" /></svg>
+      </button>
+
+      <div class="banner__eye" aria-hidden="true">
+        <img src="assets/brand/logo-mark.png" width="128" height="128" decoding="async" alt="" />
+      </div>
+
+      <div class="banner__body">
+        <div class="banner__tag" id="bannerTag">Big Boss · Announcement</div>
+        <p class="banner__text" id="bannerText"></p>
+        <div class="banner__foot">
+          <span class="chip chip--live">House-wide broadcast</span>
+          <span>Transmitted <span id="bannerStamp">--:--:--</span></span>
+          <span class="banner__brand">
+            <img src="assets/brand/logo-mark.png" width="128" height="128" decoding="async" alt="" />
+            <span>SPARTANS <i>X</i> TECH BOSS</span>
+          </span>
+        </div>
+      </div>
+
+      <span class="banner__progress" id="bannerProgress" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
+
+  <noscript>
+    <style>
+      .splash { display: none !important; }
+    </style>
+    <p style="padding: 24px; color: #e8eefc">
+      The Command Center needs JavaScript enabled to monitor the Tech House.
+    </p>
+  </noscript>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
