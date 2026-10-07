@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Big Boss Command Centre · Tech House</title>
+  <meta name="description" content="Big Boss Command Centre — real-time control of contestants, tasks, points, nominations, immunity, the Danger Zone and evictions in the Tech House." />
+  <meta name="theme-color" content="#0a0c0f" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23E8B341'/%3E%3Ctext x='16' y='22' font-size='16' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%2314100a'%3EB%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ── Sidebar ───────────────────────────────────────────── -->
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark">BB</div>
+        <div class="brand-text">
+          <strong>Command Centre</strong>
+          <span id="houseLabel">Tech House · S1</span>
+        </div>
+      </div>
+
+      <div class="nav-label">Control</div>
+      <button class="nav-item active" data-view="overview" data-key="1">
+        <span class="ico" data-icon="grid"></span> Overview
+      </button>
+      <button class="nav-item" data-view="contestants" data-key="2">
+        <span class="ico" data-icon="users"></span> Contestants
+        <span class="pill zero" id="navContestants">0</span>
+      </button>
+      <button class="nav-item" data-view="tasks" data-key="3">
+        <span class="ico" data-icon="check"></span> Tasks
+        <span class="pill zero" id="navTasks">0</span>
+      </button>
+      <button class="nav-item" data-view="leaderboard" data-key="4">
+        <span class="ico" data-icon="bar"></span> Leaderboard
+      </button>
+      <button class="nav-item" data-view="danger" data-key="5">
+        <span class="ico" data-icon="shield"></span> Nominations
+        <span class="pill zero" id="navDanger">0</span>
+      </button>
+
+      <div class="nav-label">House</div>
+      <button class="nav-item" data-view="announcements" data-key="6">
+        <span class="ico" data-icon="megaphone"></span> Announcements
+      </button>
+      <button class="nav-item" data-view="evictions" data-key="7">
+        <span class="ico" data-icon="logout"></span> Evictions
+      </button>
+      <button class="nav-item" data-view="activity" data-key="8">
+        <span class="ico" data-icon="activity"></span> Activity Log
+      </button>
+      <button class="nav-item" data-view="settings" data-key="9">
+        <span class="ico" data-icon="settings"></span> Settings
+      </button>
+
+      <div class="sidebar-foot">
+        <div class="captain-card" id="sidebarCaptain"></div>
+        <button class="ghost-link" id="btnShortcuts">Shortcuts · 1–9</button>
+      </div>
+    </aside>
+
+    <!-- ── Main ──────────────────────────────────────────────── -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="viewTitle">House Overview</h1>
+          <div class="sub" id="viewSub">Live control room</div>
+        </div>
+        <div class="topbar-spacer"></div>
+        <div class="chip" id="chipDay" title="Current day in the House"></div>
+        <div class="chip" id="chipClock" title="Local time"></div>
+        <div class="chip" id="chipTimer" title="Task timer status"></div>
+        <button class="btn primary" id="btnAnnounce">
+          <span data-icon="megaphone"></span> Announce
+        </button>
+      </header>
+
+      <div id="views">
+        <!-- OVERVIEW -->
+        <section class="view active" id="view-overview"></section>
+        <!-- CONTESTANTS -->
+        <section class="view" id="view-contestants"></section>
+        <!-- TASKS -->
+        <section class="view" id="view-tasks"></section>
+        <!-- LEADERBOARD -->
+        <section class="view" id="view-leaderboard"></section>
+        <!-- DANGER -->
+        <section class="view" id="view-danger"></section>
+        <!-- ANNOUNCEMENTS -->
+        <section class="view" id="view-announcements"></section>
+        <!-- EVICTIONS -->
+        <section class="view" id="view-evictions"></section>
+        <!-- ACTIVITY -->
+        <section class="view" id="view-activity"></section>
+        <!-- SETTINGS -->
+        <section class="view" id="view-settings"></section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ── Overlays ────────────────────────────────────────────── -->
+  <div class="broadcast" id="broadcast" role="status" aria-live="assertive">
+    <div class="bc-card" id="broadcastCard">
+      <div class="bc-tag">Big Boss Announcement</div>
+      <div class="bc-msg" id="broadcastMsg"></div>
+      <div class="bc-foot">Press <span class="kbd">Esc</span> or click anywhere to dismiss</div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="m-card">
+      <div class="m-head">
+        <h3 id="modalTitle">Title</h3>
+        <p id="modalDesc"></p>
+      </div>
+      <div class="m-body" id="modalBody"></div>
+      <div class="m-foot" id="modalFoot"></div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

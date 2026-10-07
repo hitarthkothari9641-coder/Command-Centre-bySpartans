@@ -1,0 +1,29 @@
+{
+  "name": "command-centre-by-spartans",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Big Boss Command Centre \u2014 real-time control of contestants, tasks, points, nominations, immunity, the Danger Zone and evictions in the Tech House.",
+  "keywords": [
+    "bigboss",
+    "command-centre",
+    "hackathon",
+    "vanilla-js",
+    "dashboard"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.cjs",
+    "dev": "node server.cjs",
+    "check": "node --check server.cjs && node --check js/store.js && node --check js/app.js && node --check js/icons.js",
+    "test": "node test/smoke.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "main": "server.cjs",
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.1.2"
+  }
+}
