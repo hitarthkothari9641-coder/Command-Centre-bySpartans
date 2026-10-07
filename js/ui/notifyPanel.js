@@ -22,7 +22,7 @@ export const isNotifyPanelOpen = () => Boolean(host && !host.hidden);
 /** Repaint the panel from state (cheap — a few dozen nodes at most). */
 export function renderNotifyPanel(state) {
   const node = ensureHost();
-  if (!node) return;
+  if (!node || node.hidden) return; // nothing to repaint while the panel is closed
   node.innerHTML = NotificationPanel(state);
   const bell = $('.bell');
   if (bell) bell.setAttribute('aria-expanded', String(!node.hidden));
