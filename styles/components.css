@@ -1986,3 +1986,252 @@
   background: currentColor;
   opacity: 0.55;
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   BRAND — "SPARTANS X TECH BOSS" identity layer
+   The crest art carries gold/crimson (brand); status colours stay semantic.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Sidebar crest ─────────────────────────────────────────────────────── */
+.brand__logo {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid rgba(250, 204, 21, 0.34);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.18), 0 10px 26px -14px rgba(250, 204, 21, 0.75);
+}
+.brand__title i,
+.banner__brand i {
+  font-style: normal;
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+}
+.app[data-sidebar='collapsed'] .brand__logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+/* ── Dashboard hero lockup ─────────────────────────────────────────────── */
+.brand-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 520px);
+  align-items: stretch;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+  padding: clamp(18px, 2.4vw, 28px);
+  overflow: hidden;
+  /* Brand-tinted rim, distinct from the cyan/violet status language. */
+  border-color: rgba(250, 204, 21, 0.2);
+}
+.brand-hero::before {
+  background: linear-gradient(140deg, rgba(250, 204, 21, 0.4), transparent 42%, transparent 62%, rgba(239, 68, 68, 0.3));
+  opacity: 0.55;
+}
+.brand-hero::after {
+  content: '';
+  position: absolute;
+  inset: -50% -20% auto auto;
+  width: 60%;
+  height: 180%;
+  background: radial-gradient(closest-side, rgba(239, 68, 68, 0.18), transparent 70%);
+  pointer-events: none;
+}
+.brand-hero__body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  justify-content: center;
+  min-width: 0;
+}
+.brand-hero__lockup {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  min-width: 0;
+}
+.brand-hero__mark {
+  width: clamp(56px, 6vw, 76px);
+  height: clamp(56px, 6vw, 76px);
+  flex: none;
+  border-radius: var(--r);
+  object-fit: cover;
+  border: 1px solid rgba(250, 204, 21, 0.36);
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2), 0 18px 44px -22px rgba(250, 204, 21, 0.9);
+}
+.brand-hero__eyebrow {
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.brand-hero__title {
+  font-size: clamp(24px, 3.2vw, 38px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  margin-top: 2px;
+  background: linear-gradient(96deg, #fff8e1 6%, var(--gold) 42%, #f97316 96%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.brand-hero__tagline {
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+.brand-hero__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.brand-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.brand-hero__art {
+  position: relative;
+  min-height: 200px;
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1px solid rgba(250, 204, 21, 0.16);
+  -webkit-mask-image: linear-gradient(100deg, transparent, #000 18%, #000 100%);
+  mask-image: linear-gradient(100deg, transparent, #000 18%, #000 100%);
+}
+.brand-hero__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 52% 42%;
+  transform: scale(1.02);
+  transition: transform 1.2s var(--ease);
+}
+.brand-hero:hover .brand-hero__art img {
+  transform: scale(1.05);
+}
+
+@media (max-width: 1080px) {
+  .brand-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .brand-hero__art {
+    order: -1;
+    min-height: 168px;
+    -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent);
+    mask-image: linear-gradient(180deg, #000 55%, transparent);
+  }
+  .brand-hero__art img {
+    object-position: 50% 34%;
+  }
+}
+@media (max-width: 560px) {
+  .brand-hero__art {
+    min-height: 132px;
+  }
+  .brand-hero__mark {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+/* ── Banner brand lockup ───────────────────────────────────────────────── */
+.banner__eye {
+  padding: 0;
+  overflow: hidden;
+}
+.banner__eye img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+.banner__brand {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: var(--ls-wide);
+  color: var(--text-3);
+}
+.banner__brand img {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  object-fit: cover;
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  opacity: 0.9;
+}
+@media (max-width: 700px) {
+  .banner__brand {
+    display: none;
+  }
+}
+
+/* ── Boot splash ───────────────────────────────────────────────────────── */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: grid;
+  place-items: center;
+  padding: var(--s-5);
+  background:
+    radial-gradient(70% 55% at 50% 30%, rgba(239, 68, 68, 0.16), transparent 70%),
+    radial-gradient(80% 60% at 50% 100%, rgba(250, 204, 21, 0.08), transparent 70%),
+    #05070d;
+  /* Auto-dismiss even if JS never runs, so nobody is ever stuck here. */
+  animation: splash-out 0.6s var(--ease) 1.6s forwards;
+}
+.splash.is-leaving {
+  animation: splash-out 0.45s var(--ease) forwards;
+}
+.splash__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-4);
+  width: min(520px, 88vw);
+  animation: view-in 0.5s var(--ease-out) both;
+}
+.splash__logo {
+  width: 100%;
+  height: auto;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.2),
+    0 50px 120px -50px rgba(250, 204, 21, 0.7),
+    0 30px 90px -40px rgba(239, 68, 68, 0.6);
+}
+.splash__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.splash__bar {
+  width: 100%;
+  height: 2px;
+  border-radius: var(--r-pill);
+  background: rgba(148, 180, 255, 0.16);
+  overflow: hidden;
+}
+.splash__bar > i {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--crimson), var(--gold));
+  animation: splash-scan 1.15s var(--ease) infinite;
+}

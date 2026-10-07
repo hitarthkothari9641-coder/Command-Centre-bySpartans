@@ -335,6 +335,18 @@ async function initBackground() {
   }
 }
 
+/* ── Boot splash ───────────────────────────────────────────────────────── */
+
+function dismissSplash() {
+  const splash = $('#splash');
+  if (!splash || splash.dataset.dismissed) return;
+  splash.dataset.dismissed = 'true';
+  splash.classList.add('is-leaving');
+  const remove = () => splash.remove();
+  splash.addEventListener('animationend', remove, { once: true });
+  setTimeout(remove, 1200); // belt and braces: never linger
+}
+
 /* ── Boot ──────────────────────────────────────────────────────────────── */
 
 function boot() {
@@ -371,6 +383,8 @@ function boot() {
 
   render();
   applyBackgroundPreference();
+  // Let the crest land before the room fades in.
+  requestAnimationFrame(() => setTimeout(dismissSplash, 420));
 
   if (!state().ui.onboarded) {
     setTimeout(() => showBanner('Welcome to the Command Center. Big Boss is watching every move.', 'accent', { duration: 6500 }), 600);

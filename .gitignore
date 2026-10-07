@@ -13,3 +13,8 @@ Thumbs.db
 # editors
 .vscode/
 .idea/
+
+# Brand masters in exotic formats (the committed master is logo-source.jpg)
+assets/brand/logo-source.png
+assets/brand/logo-source.jpeg
+assets/brand/logo-source.webp

@@ -18,7 +18,8 @@
     "dev": "node server.cjs",
     "test": "node test/smoke.mjs",
     "build:vendor": "esbuild js/background-scene.js --bundle --format=esm --minify --outfile=vendor/background.bundle.js",
-    "check": "node --check server.cjs && for f in js/*.js js/**/*.js; do node --check \"$f\" || exit 1; done && echo \"syntax OK\""
+    "check": "node --check server.cjs && for f in js/*.js js/**/*.js; do node --check \"$f\" || exit 1; done && echo \"syntax OK\"",
+    "brand:logo": "node scripts/sync-logo.mjs"
   },
   "engines": {
     "node": ">=18"

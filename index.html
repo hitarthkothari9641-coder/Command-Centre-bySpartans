@@ -12,10 +12,12 @@
   <meta property="og:description" content="Mission-control dashboard for the Tech House reality show. Big Boss is watching." />
   <meta property="og:type" content="website" />
 
-  <link
-    rel="icon"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2305070d'/%3E%3Cpath d='M16 8c-4.2 0-7.4 3-8.6 8 1.2 5 4.4 8 8.6 8s7.4-3 8.6-8c-1.2-5-4.4-8-8.6-8zm0 11.5A3.5 3.5 0 1 1 16 12.5a3.5 3.5 0 0 1 0 7z' fill='%2322d3ee'/%3E%3C/svg%3E"
-  />
+  <link rel="icon" type="image/png" href="assets/brand/logo-mark.png" />
+  <link rel="apple-touch-icon" href="assets/brand/logo-square.jpg" />
+
+  <!-- Brand art is above the fold: fetch it with the app shell -->
+  <link rel="preload" as="image" href="assets/brand/logo-mark.png" />
+  <link rel="preload" as="image" href="assets/brand/logo-wide.jpg" />
 
   <link rel="stylesheet" href="styles/tokens.css" />
   <link rel="stylesheet" href="styles/base.css" />
@@ -26,6 +28,21 @@
 
 <body data-bg="on">
   <a class="skip-link" href="#viewHost">Skip to House control</a>
+
+  <!-- ── Boot splash (removed by JS once the control room is live) ───── -->
+  <div class="splash" id="splash" role="status" aria-label="Booting the Command Center">
+    <div class="splash__inner">
+      <img class="splash__logo" src="assets/brand/logo-wide.jpg"
+        srcset="assets/brand/logo-wide.jpg 720w, assets/brand/logo-hero.jpg 1280w"
+        sizes="(max-width: 700px) 88vw, 520px"
+        width="720" height="480" fetchpriority="high" decoding="async"
+        alt="Spartans X Tech Boss" />
+      <div class="splash__meta">
+        <span class="chip chip--live"><i class="live-dot"></i> Establishing House feed</span>
+      </div>
+      <div class="splash__bar"><i></i></div>
+    </div>
+  </div>
 
   <!-- ── Background visual stack ────────────────────────────────────── -->
   <canvas id="bgCanvas" class="bg-canvas" aria-hidden="true"></canvas>
@@ -94,11 +111,7 @@
       </button>
 
       <div class="banner__eye" aria-hidden="true">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
+        <img src="assets/brand/logo-mark.png" width="128" height="128" decoding="async" alt="" />
       </div>
 
       <div class="banner__body">
@@ -107,6 +120,10 @@
         <div class="banner__foot">
           <span class="chip chip--live">House-wide broadcast</span>
           <span>Transmitted <span id="bannerStamp">--:--:--</span></span>
+          <span class="banner__brand">
+            <img src="assets/brand/logo-mark.png" width="128" height="128" decoding="async" alt="" />
+            <span>SPARTANS <i>X</i> TECH BOSS</span>
+          </span>
         </div>
       </div>
 
@@ -117,6 +134,9 @@
   <div class="toasts" id="toasts" role="status" aria-live="polite" aria-atomic="false"></div>
 
   <noscript>
+    <style>
+      .splash { display: none !important; }
+    </style>
     <p style="padding: 24px; color: #e8eefc">
       The Command Center needs JavaScript enabled to monitor the Tech House.
     </p>

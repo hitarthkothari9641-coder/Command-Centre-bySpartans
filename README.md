@@ -4,8 +4,8 @@ A production-grade, **surveillance-control-room** dashboard that lets Big Boss m
 in real time: contestants, live leaderboard, tasks, points, captaincy, nominations, immunity, the Danger Zone,
 cinematic announcements, the task timer, house statistics and evictions.
 
-Dark glassmorphism UI · animated 3D background (Three.js) · centralized reducer state · zero runtime dependencies
-beyond a self-hosted vendor bundle.
+Brand: **SPARTANS X TECH BOSS** · dark glassmorphism UI · animated 3D background (Three.js) · centralized reducer
+state · zero runtime dependencies beyond a self-hosted vendor bundle.
 
 ```
 npm install
@@ -26,6 +26,7 @@ npm test         # 28 automated feature checks (headless jsdom + esbuild)
 | **Pure reducer as the only writer** | `js/store/reducer.js` returns new state, validates House rules and throws human-readable errors (*"Meera Nair holds immunity — nomination denied."*). The UI turns those into toasts. |
 | **Progressive motion** | FLIP reordering with success/danger flashes, count-up scores (with a settle timer so a throttled tab still shows the truth), staggered card entrances, ghost-glitch removal + full-screen scanline flash on eviction, and a cinematic typewriter banner for announcements. Everything collapses under `prefers-reduced-motion`. |
 | **One primary action per card** | Points stepper or Reinstate is always the primary button; captaincy, immunity, nomination, edit and eviction live behind the ⋯ menu. Destructive actions always confirm in a modal. |
+| **Brand layer, not status layer** | The official *SPARTANS X TECH BOSS* key art carries gold + crimson as **identity** (hero, splash, sidebar crest, banner, favicon) while data keeps its cyan/violet semantics — so the logo never competes with, or contradicts, a status colour. |
 | **Truthful DOM** | Numbers render their real value into the markup and are then animated, so the UI is correct even before/without JavaScript animation, and it is testable. |
 
 ## 2. Folder structure
@@ -65,6 +66,9 @@ npm test         # 28 automated feature checks (headless jsdom + esbuild)
 │   └── views/                     # Dashboard · Contestants · Tasks · Nominations · Leaderboard
 │                                  # Announcements · Evictions · Activity · Settings
 │
+├── assets/brand/                  # SPARTANS X TECH BOSS crest + key art (see its README)
+├── scripts/sync-logo.mjs          # npm run brand:logo -- master.png  → all derivatives
+│
 ├── vendor/
 │   ├── background.bundle.js       # generated: npm run build:vendor
 │   └── fonts/                     # self-hosted Orbitron + Inter (woff2)
@@ -73,7 +77,21 @@ npm test         # 28 automated feature checks (headless jsdom + esbuild)
 └── docs/dashboard-layout.svg      # hand-drawn layout schematic
 ```
 
-## 3. Screenshots
+## 3. Brand — SPARTANS X TECH BOSS
+
+The crew logo lives in `assets/brand/` and appears in five places: the **boot splash**, the **sidebar crest +
+wordmark**, the **dashboard hero** (key art with season lockup, live status and the three fastest Big Boss
+actions), the **announcement banner**, and the **favicon / apple-touch-icon**.
+
+```bash
+npm run brand:logo -- ~/Downloads/my-logo.jpg   # swap in your own artwork → regenerates every size
+```
+
+Derivatives are produced from one full-resolution master (`logo-source.jpg`, 1536×1024) by `scripts/sync-logo.mjs`
+(ImageMagick `convert`): 256²/512² crest, 720×480 + 1280×853 key art, 640² square icon. See
+`assets/brand/README.md` for the crop knobs.
+
+## 4. Screenshots
 
 `docs/dashboard-layout.svg` is a **hand-drawn layout schematic** (not a screenshot) of the dashboard bento grid.
 
@@ -81,14 +99,15 @@ To capture real screenshots for a submission, run the app and save PNGs into `do
 
 | Suggested file | View | What to capture |
 |---|---|---|
-| `01-dashboard.png` | Dashboard | Stats row + leaderboard + timer + Danger Zone |
+| `00-splash.png` | Boot | SPARTANS X TECH BOSS splash while the feed establishes |
+| `01-dashboard.png` | Dashboard | Brand hero + stats row + leaderboard + timer + Danger Zone |
 | `02-contestants.png` | Contestants | Filter bar, roster grid, action menu open |
 | `03-tasks.png` | Tasks | Task timer running, task board with a completion |
 | `04-nominations.png` | Nominations | Danger Zone alarm card + immunity panel |
 | `05-announcement.png` | Any | The cinematic Big Boss banner mid-typewriter |
 | `06-eviction.png` | Evictions | Eviction record with a reinstated contestant |
 
-## 4. Feature checklist — the 12 mandatory features
+## 5. Feature checklist — the 12 mandatory features
 
 | # | Feature | Where | How to verify |
 |---|---|---|---|
@@ -107,7 +126,7 @@ To capture real screenshots for a submission, run the app and save PNGs into `do
 
 Extra: **Activity Log** (filterable audit trail), **Settings** (house config, backups, reset demo data, appearance).
 
-## 5. Manual QA checklist
+## 6. Manual QA checklist
 
 Run `npm start`, open http://localhost:5173 and walk through this list. Every step must leave the UI consistent
 after a page refresh (state persists in `localStorage` under the `bb-command-centre.v1` key).
@@ -170,19 +189,26 @@ after a page refresh (state persists in `localStorage` under the `bb-command-cen
 - [ ] Try to evict an immune contestant: the modal first warns **"Override immunity…"** and the override is written into the log.
 - [ ] **Evict the Danger Zone** removes the whole round in one confirmed action.
 
+**Brand**
+- [ ] Boot: the SPARTANS X TECH BOSS splash appears, then the control room fades in.
+- [ ] Sidebar crest + wordmark visible; collapse the sidebar → crest shrinks, wordmark hides.
+- [ ] Dashboard hero shows the key art, season lockup, live chips and the three quick actions (Announce / Assign task / Nominate).
+- [ ] Make an announcement → the banner shows the crest badge and the brand lockup in its footer.
+- [ ] Browser tab shows the crest favicon; the tab title reads "… · Big Boss Command Center".
+
 **System**
 - [ ] Refresh the page: every change is still there (localStorage).
 - [ ] Settings → **Reset demo data** restores the 12-contestant season; **Empty the House** clears it.
 - [ ] Settings → toggle the 3D background; enable *prefers-reduced-motion* in your OS and confirm motion stops (static gradient).
 - [ ] Keyboard: `1…9` switch sections, `B` collapses the sidebar, `N` opens the announcement composer, `T` toggles the timer, `Esc` closes overlays, `Tab` walks every control with a visible focus ring.
 
-## 6. Production notes
+## 7. Production notes
 
 - **Performance** — no framework, no runtime fetches beyond the vendor bundle and fonts; DPR ≤ 2; the 3D loop pauses on hidden tabs; timers never trigger a full re-render (only the clocks/rings are patched).
 - **Accessibility** — semantic landmarks, `aria-live` toasts, `role="alertdialog"` banner, focus trapping in modals, visible focus rings, skip link, AA-contrast palette, colour never used alone.
 - **Security** — all user text is escaped before it reaches the DOM; the server blocks path traversal and sets `X-Content-Type-Options: nosniff`.
 - **Deploy** — static output: `node server.cjs` (any port via `PORT`), or drop the folder on any static host/CDN.
 
-## 7. Team
+## 8. Team
 
-Built by **Spartans** for the Tech House. Big Boss is watching. 🫡
+**SPARTANS X TECH BOSS** — built for the Tech House. Big Boss is watching. 🫡

@@ -8,6 +8,7 @@ import { DangerZoneList } from '../components/DangerZone.js';
 import { ActivityFeed, ActivityFooter } from '../components/ActivityFeed.js';
 import { AnnouncementHero } from '../components/AnnouncementList.js';
 import { MvpStrip, TeamStandings } from '../components/HouseStats.js';
+import { BrandHero } from '../components/BrandHero.js';
 import { EmptyState } from '../components/EmptyState.js';
 import * as selectors from '../store/selectors.js';
 
@@ -82,6 +83,15 @@ export function DashboardView(state) {
   ];
 
   return `
+    ${BrandHero({
+      houseName: state.house.name,
+      season: state.house.season,
+      day: state.house.day,
+      activeCount: stats.activeCount,
+      nominees: stats.nomineeCount,
+      running: timer.running,
+    })}
+
     ${
       !state.ui.onboarded
         ? `<div class="hint-banner">

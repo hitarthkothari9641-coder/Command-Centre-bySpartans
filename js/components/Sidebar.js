@@ -25,9 +25,12 @@ export function Sidebar({ activeView, counts, collapsed, captain }) {
 
   return `
     <div class="brand">
-      <span class="brand__mark">${icon('eye', 20)}</span>
+      <img class="brand__logo" src="assets/brand/logo-mark.png"
+        srcset="assets/brand/logo-mark.png 1x, assets/brand/logo-mark.jpg 2x"
+        width="40" height="40" decoding="async"
+        alt="Spartans X Tech Boss" />
       <div class="brand__text">
-        <span class="brand__title">BIG BOSS</span>
+        <span class="brand__title">SPARTANS <i>X</i> TECH BOSS</span>
         <span class="brand__sub">Command Center</span>
       </div>
     </div>
